@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 
-import Navigation from "../Navigation";
+import Layout from "../Layout/index";
+// import Navigation from "../Navigation";
 import LandingPage from "../Landing";
 import SignUpPage from "../SignUp";
 import SignInPage from "../SignIn";
@@ -9,8 +10,10 @@ import PasswordForgetPage from "../PasswordForget";
 import HomePage from "../Home";
 import AccountPage from "../Account";
 import AdminPage from "../Admin";
+// Projects
 import ListView from "../Projects/List";
 import AddView from "../Projects/Add";
+import DetailsView from "../Projects/Details";
 
 import * as ROUTES from "../../constants/routes";
 import { withAuthentication } from "../Session";
@@ -18,7 +21,7 @@ import { withAuthentication } from "../Session";
 const App = () => (
   <Router>
     <div>
-      <Navigation />
+      {/* <Navigation /> */}
 
       <Route exact path={ROUTES.LANDING} component={LandingPage} />
       <Route path={ROUTES.SIGN_UP} component={SignUpPage} />
@@ -29,6 +32,7 @@ const App = () => (
       <Route path={ROUTES.ADMIN} component={AdminPage} />
       <Route path={ROUTES.LIST} component={ListView} />
       <Route path={ROUTES.ADDPROJECT} component={AddView} />
+      <Route path={ROUTES.DETAILS_PROJECT} component={DetailsView} />
     </div>
   </Router>
 );

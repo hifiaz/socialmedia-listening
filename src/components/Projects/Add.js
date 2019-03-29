@@ -1,10 +1,11 @@
 import React, { Component } from "react";
-import Layout from "../Layout/index";
-import { Form, Input, Row, Col, Button } from "antd";
 
 import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 import { AuthUserContext } from "../Session";
+
+import { Form, Input, Row, Col, Button } from "antd";
+import Layout from "../Layout/index";
 
 const { TextArea } = Input;
 
@@ -23,8 +24,9 @@ class AddView extends Component {
   }
   onSubmit = event => {
     const { title, description, keywords } = this.state;
+    let authUser = JSON.parse(localStorage.getItem("authUser"));
     this.props.firebase
-      .project()
+      .project(authUser.uid)
       .push({
         title,
         description,

@@ -83,27 +83,6 @@ class SignInFormBase extends Component {
 
         {error && <p>{error.message}</p>}
       </Form>
-      // <form onSubmit={this.onSubmit} className="login-form">
-      //   <input
-      //     name="email"
-      //     value={email}
-      //     onChange={this.onChange}
-      //     type="text"
-      //     placeholder="Email Address"
-      //   />
-      //   <input
-      //     name="password"
-      //     value={password}
-      //     onChange={this.onChange}
-      //     type="password"
-      //     placeholder="Password"
-      //   />
-      //   <button disabled={isInvalid} type="submit">
-      //     Sign In
-      //   </button>
-
-      //   {error && <p>{error.message}</p>}
-      // </form>
     );
   }
 }

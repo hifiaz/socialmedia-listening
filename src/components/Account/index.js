@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { compose } from "recompose";
-import Layout from "../Layout/index"
+import Layout from "../Layout/index";
 
 import {
   AuthUserContext,

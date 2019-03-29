@@ -22,12 +22,14 @@ class Sidebar extends Component {
   };
   render() {
     return (
-      <Sider width={200} style={{ background: "#fff" }}>
+      <Sider width={250}>
+        <div className="logo" />
         <Menu
           onClick={this.handleClick}
-          defaultOpenKeys={["sub1"]}
+          defaultOpenKeys={["sub1", "sub2", "sub3"]}
           selectedKeys={[this.state.current]}
           mode="inline"
+          theme="dark"
           style={{ height: "100%", borderRight: 0 }}
         >
           <Menu.Item key="home1">
@@ -80,6 +82,18 @@ class Sidebar extends Component {
             <Menu.Item key="11">option11</Menu.Item>
             <Menu.Item key="12">option12</Menu.Item>
           </SubMenu>
+          <Menu.Item key="account">
+            <Link to={ROUTES.ACCOUNT}>
+              <Icon type="user" />
+              Account
+            </Link>
+          </Menu.Item>
+          <Menu.Item key="admin">
+            <Link to={ROUTES.ADMIN}>
+              <Icon type="skin" />
+              Admin
+            </Link>
+          </Menu.Item>
         </Menu>
       </Sider>
     );
