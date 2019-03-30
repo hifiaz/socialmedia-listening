@@ -9,31 +9,35 @@ import Layout from "../Layout/index";
 
 const { TextArea } = Input;
 
-const INITIAL_STATE = {
-  title: "",
-  description: "",
-  keywords: "",
-  error: null
-};
-
-class AddView extends Component {
+class EditView extends Component {
   constructor(props) {
     super(props);
-    this.state = { ...INITIAL_STATE };
+    this.state = {
+      title: props.location.state.data.title || "",
+      description: props.location.state.data.description || "",
+      keywords: props.location.state.data.keywords || "",
+      data: [],
+      error: null,
+      ...props.location.state
+    };
   }
-  onSubmit = event => {
-    const { title, description, keywords } = this.state;
+
+  onEditProject = event => {
+    const { title, description, keywords, data } = this.state;
     let authUser = JSON.parse(localStorage.getItem("authUser"));
+    console.log(title);
+    console.log(data.key);
     this.props.firebase
       .project(authUser.uid)
-      .push({
-        createdAt: this.props.firebase.serverValue.TIMESTAMP,
+      .child(data.key)
+      .set({
+        ...data,
         title,
         description,
-        keywords
+        keywords,
+        editedAt: this.props.firebase.serverValue.TIMESTAMP
       })
       .then(() => {
-        this.setState({ ...INITIAL_STATE });
         this.props.history.push(ROUTES.LIST);
       })
       .catch(error => {
@@ -44,36 +48,31 @@ class AddView extends Component {
   onChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
-
-  onEditProject = (message, text) => {
-    this.props.firebase.message(message.uid).set({
-      ...message,
-      text,
-      editedAt: this.props.firebase.serverValue.TIMESTAMP
-    });
-  };
+  componentDidMount() {
+    //   const { param } = this.props.navigation.state.params;
+    console.log("Helo" + this.state.data.title);
+    console.log(this.state.data);
+  }
   render() {
-    const { title, description, keywords, error } = this.state;
-
-    const isInvalid = title === "" || keywords === "";
+    const { data } = this.state;
     return (
       <AuthUserContext.Consumer>
         {authUser => (
           <Layout>
-            <h1>Add</h1>
+            <h1>Edit Project</h1>
             <p>Setup keyword to grab data for your analytics</p>
             <Card bordered={false}>
               <Row>
                 <Col span={16}>
                   <Form
-                    onSubmit={this.onSubmit}
+                    onSubmit={this.onEditProject}
                     labelCol={{ span: 5 }}
                     wrapperCol={{ span: 12 }}
                   >
                     <Form.Item label="Title">
                       <Input
                         name="title"
-                        value={title}
+                        defaultValue={data.title}
                         onChange={this.onChange}
                         type="text"
                       />
@@ -81,7 +80,7 @@ class AddView extends Component {
                     <Form.Item label="Description">
                       <Input
                         name="description"
-                        value={description}
+                        defaultValue={data.description}
                         onChange={this.onChange}
                         type="textarea"
                       />
@@ -89,22 +88,17 @@ class AddView extends Component {
                     <Form.Item label="Keywords">
                       <TextArea
                         name="keywords"
-                        value={keywords}
+                        defaultValue={data.keywords}
                         onChange={this.onChange}
                         type="textarea"
                         rows={4}
                       />
                     </Form.Item>
                     <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
-                      <Button
-                        disabled={isInvalid}
-                        type="primary"
-                        htmlType="submit"
-                      >
+                      <Button type="primary" htmlType="submit">
                         Save
                       </Button>
                     </Form.Item>
-                    {error && <p>{error.message}</p>}
                   </Form>
                 </Col>
                 <Col span={8}>
@@ -118,11 +112,5 @@ class AddView extends Component {
     );
   }
 }
-// const condition = authUser => !!authUser;
 
-// const AddDataForm = compose(
-//   withAuthorization,
-//   withFirebase
-// )(AddView);
-
-export default withFirebase(AddView);
+export default withFirebase(EditView);

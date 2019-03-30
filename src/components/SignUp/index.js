@@ -75,7 +75,7 @@ class SignUpFormBase extends Component {
       email,
       passwordOne,
       passwordTwo,
-      // isAdmin,
+      isAdmin,
       error
     } = this.state;
     const isInvalid =
@@ -121,7 +121,7 @@ class SignUpFormBase extends Component {
             placeholder="Confirm Password"
           />
         </Form.Item>
-        {/* <label>
+        <label>
           Admin:
           <input
             name="isAdmin"
@@ -129,7 +129,7 @@ class SignUpFormBase extends Component {
             checked={isAdmin}
             onChange={this.onChangeCheckbox}
           />
-        </label> */}
+        </label>
         <Button
           disabled={isInvalid}
           type="primary"

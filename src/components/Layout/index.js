@@ -5,22 +5,21 @@ import { Layout } from "antd";
 import Sidebar from "./sidebar";
 import Navigation from "../Navigation";
 
-const { Content } = Layout;
+const { Content, Footer } = Layout;
 
 const DefaultLayout = ({ children }) => (
   <Layout>
     <Sidebar />
-    <Layout>
+    <Layout
+      style={{
+        minHeight: "100vh"
+      }}
+    >
       <Navigation />
-      <Content
-        style={{
-          padding: 24,
-          margin: 0,
-          minHeight: 280
-        }}
-      >
-        {children}
-      </Content>
+      <Content style={{ margin: "24px 24px 0" }}>{children}</Content>
+      <Footer style={{ textAlign: "center" }}>
+        Duende ©2019 Created by Fiaz Luthfi
+      </Footer>
     </Layout>
   </Layout>
 );

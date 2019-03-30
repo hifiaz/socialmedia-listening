@@ -15,14 +15,23 @@ class Sidebar extends Component {
   };
 
   handleClick = e => {
-    console.log("click ", e);
+    // console.log("click ", e);
     this.setState({
       current: e.key
     });
   };
   render() {
     return (
-      <Sider width={250}>
+      <Sider
+        breakpoint="lg"
+        collapsedWidth="0"
+        onBreakpoint={broken => {
+          console.log(broken);
+        }}
+        onCollapse={(collapsed, type) => {
+          console.log(collapsed, type);
+        }}
+      >
         <div className="logo" />
         <Menu
           onClick={this.handleClick}
@@ -30,7 +39,7 @@ class Sidebar extends Component {
           selectedKeys={[this.state.current]}
           mode="inline"
           theme="dark"
-          style={{ height: "100%", borderRight: 0 }}
+          style={{ borderRight: 0 }}
         >
           <Menu.Item key="home1">
             <Link to={ROUTES.HOME}>
@@ -59,28 +68,16 @@ class Sidebar extends Component {
             title={
               <span>
                 <Icon type="laptop" />
-                subnav 2
+                Social Media
               </span>
             }
           >
-            <Menu.Item key="5">option5</Menu.Item>
-            <Menu.Item key="6">option6</Menu.Item>
-            <Menu.Item key="7">option7</Menu.Item>
-            <Menu.Item key="8">option8</Menu.Item>
-          </SubMenu>
-          <SubMenu
-            key="sub3"
-            title={
-              <span>
-                <Icon type="notification" />
-                subnav 3
-              </span>
-            }
-          >
-            <Menu.Item key="9">option9</Menu.Item>
-            <Menu.Item key="10">option10</Menu.Item>
-            <Menu.Item key="11">option11</Menu.Item>
-            <Menu.Item key="12">option12</Menu.Item>
+            <Menu.Item key="5">Twitter</Menu.Item>
+            <Menu.Item key="6">Instagram</Menu.Item>
+            <Menu.Item key="7">Facebook</Menu.Item>
+            <Menu.Item key="8">
+              <Link to={ROUTES.NEWS}>News</Link>
+            </Menu.Item>
           </SubMenu>
           <Menu.Item key="account">
             <Link to={ROUTES.ACCOUNT}>

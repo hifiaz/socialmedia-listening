@@ -8,6 +8,7 @@ import App from "./components/App";
 import Firebase, { FirebaseContext } from './components/Firebase';
 
 import 'antd/dist/antd.css';
+import 'ant-design-pro/dist/ant-design-pro.css';
 
 ReactDOM.render(
   <FirebaseContext.Provider value={new Firebase()}>

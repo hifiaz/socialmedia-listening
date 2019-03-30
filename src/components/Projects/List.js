@@ -1,38 +1,13 @@
-import React from "react";
-import Layout from "../Layout/index";
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
 
 import { withAuthorization } from "../Session";
-import { Table, Divider, Button } from "antd";
-import { Component } from "react";
+import * as ROUTES from "../../constants/routes";
+import { Table, Divider, Button, Card } from "antd";
 
-const columns = [
-  {
-    title: "Title",
-    dataIndex: "title",
-    key: "title",
-  },
-  {
-    title: "Description",
-    dataIndex: "description",
-    key: "description"
-  },
-  {
-    title: "Keywords",
-    dataIndex: "keywords",
-    key: "keywords"
-  },
-  {
-    title: "Action",
-    key: "action",
-    render: (text, record) => (
-      <span>
-        <Button>Invite</Button>
-        <Divider type="vertical" />
-        <Button>Delete</Button>
-      </span>
-    )
-  }
-];
+import Layout from "../Layout/index";
+
+const { Column } = Table;
 
 class ListView extends Component {
   constructor(props) {
@@ -48,15 +23,16 @@ class ListView extends Component {
     this.setState({ loading: true });
 
     let authUser = JSON.parse(localStorage.getItem("authUser"));
+    let data;
 
     this.props.firebase.project(authUser.uid).on("value", snapshot => {
-      const projectObject = snapshot.val();
-
-      const data = Object.keys(projectObject).map(key => ({
-        ...projectObject[key],
-        key: key
-      }));
-      console.log(data);
+      if (snapshot.exists()) {
+        const projectObject = snapshot.val();
+        data = Object.keys(projectObject).map(key => ({
+          ...projectObject[key],
+          key: key
+        }));
+      }
       this.setState({
         data: data,
         loading: false
@@ -64,16 +40,57 @@ class ListView extends Component {
     });
   }
 
+  onRemoveProject = event => {
+    let id = event.target.id;
+    let authUser = JSON.parse(localStorage.getItem("authUser"));
+    console.log(id);
+    this.props.firebase
+      .project(authUser.uid)
+      .child(id)
+      .remove();
+  };
+
   componentWillUnmount() {
     this.props.firebase.project().off();
   }
   render() {
+    const { data } = this.state;
     return (
       <Layout>
         <h1>List</h1>
 
         <p>All projects will display in here</p>
-        <Table columns={columns} dataSource={this.state.data} />
+        <Card bordered={false}>
+          <Table dataSource={data}>
+            <Column title="Title" dataIndex="title" key="title" />
+            <Column
+              title="Description"
+              dataIndex="description"
+              key="description"
+            />
+            <Column title="Keywords" dataIndex="keywords" key="keywords" />
+            <Column
+              title="Action"
+              key="key"
+              render={data => (
+                <span>
+                  <Link
+                    to={{
+                      pathname: `${ROUTES.EDITPROJECT}/${data.key}`,
+                      state: { data }
+                    }}
+                  >
+                    <Button>Edit</Button>
+                  </Link>
+                  <Divider type="vertical" />
+                  <Button id={data.key} onClick={this.onRemoveProject}>
+                    Delete
+                  </Button>
+                </span>
+              )}
+            />
+          </Table>
+        </Card>
       </Layout>
     );
   }

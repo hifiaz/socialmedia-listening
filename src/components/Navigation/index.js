@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
-import { Layout, Menu, Icon } from "antd";
+import { Layout, Menu } from "antd";
 
 import SignOutButton from "../SignOut";
 import * as ROUTES from "../../constants/routes";

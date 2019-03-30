@@ -8,4 +8,6 @@ export const ADMIN_DETAILS = '/admin/:id';
 export const PASSWORD_FORGET = '/pw-forget';
 export const LIST = '/list';
 export const ADDPROJECT = '/add-project';
+export const EDITPROJECT = '/edit-project';
 export const DETAILS_PROJECT = '/detail-project';
+export const NEWS = '/news';

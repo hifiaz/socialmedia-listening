@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-import {Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
 
-import { Skeleton, Card, Icon, Avatar, Col, Row } from "antd";
+import { Card, Icon, Avatar, List } from "antd";
 
 const { Meta } = Card;
 
@@ -22,16 +22,18 @@ class CardDisplay extends Component {
     this.setState({ loading: true });
 
     let authUser = JSON.parse(localStorage.getItem("authUser"));
+    let data;
 
     this.props.firebase.project(authUser.uid).on("value", snapshot => {
-      const projectObject = snapshot.val();
-
-      const data = Object.keys(projectObject).map(key => ({
-        ...projectObject[key],
-        key: key
-      }));
+      if (snapshot.exists()) {
+        const projectObject = snapshot.val();
+        data = Object.keys(projectObject).map(key => ({
+          ...projectObject[key],
+          key: key
+        }));
+      }
       this.setState({
-        datas: data,
+        data: data,
         loading: false
       });
     });
@@ -41,53 +43,68 @@ class CardDisplay extends Component {
     this.props.firebase.project().off();
   }
 
+  onRemoveProject = id => {
+    let authUser = JSON.parse(localStorage.getItem("authUser"));
+    // console.log('ini'+id);
+    this.props.firebase
+      .project(authUser.uid)
+      .child(id)
+      .remove();
+  };
+
   render() {
-    const { datas, loading } = this.state;
+    const { data } = this.state;
     return (
-      <Row gutter={16}>
-        <Skeleton loading={loading} avatar active />
-        <CardList datas={datas} />
-      </Row>
+      <List
+        grid={{ gutter: 16, column: 4 }}
+        dataSource={data}
+        renderItem={data => (
+          <List.Item>
+            <Card
+              style={{ width: "280" }}
+              cover={
+                <img
+                  alt="example"
+                  src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
+                />
+              }
+              actions={[
+                <Icon
+                  type="delete"
+                  onClick={() => this.onRemoveProject(data.key)}
+                />,
+                <Link
+                  to={{
+                    pathname: `${ROUTES.EDITPROJECT}/${data.key}`,
+                    state: { data }
+                  }}
+                >
+                  <Icon type="edit" />
+                </Link>,
+                <Link
+                  to={{
+                    pathname: `${ROUTES.DETAILS_PROJECT}/${data.key}`,
+                    state: { data }
+                  }}
+                >
+                  <Icon type="arrow-right" />
+                </Link>
+              ]}
+            >
+              <Meta
+                avatar={
+                  <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />
+                }
+                title={data.title}
+                description={data.description}
+              />
+            </Card>
+          </List.Item>
+        )}
+      />
     );
   }
 }
-
-const CardList = ({ datas }) => (
-  <div>
-    {datas.map(data => (
-      <Col key={data.key} span={6} style={{ marginBottom: "1rem" }}>
-        <Card
-          style={{ width: "280" }}
-          cover={
-            <img
-              alt="example"
-              src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
-            />
-          }
-          actions={[
-            <Icon type="edit" />,
-            <Link
-              to={{
-                pathname: `${ROUTES.DETAILS_PROJECT}/${data.key}`,
-                state: { data }
-              }}
-            >
-              <Icon type="arrow-right" />
-            </Link>
-          ]}
-        >
-          <Meta
-            avatar={
-              <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />
-            }
-            title={data.title}
-            description={data.description}
-          />
-        </Card>
-      </Col>
-    ))}
-  </div>
-);
 
 const condition = authUser => !!authUser;
 
