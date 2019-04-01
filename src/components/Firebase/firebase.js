@@ -105,6 +105,18 @@ class Firebase {
   project = uid => this.db.ref(`projects/${uid}`);
 
   projects = () => this.db.ref("projects");
+
+  // *** Twitter API ***
+
+  twitter = uid => this.db.ref(`twitter/${uid}`);
+
+  twitters = () => this.db.ref("twitter");
+
+  // *** Data API ***
+
+  data = uid => this.db.ref(`datas/${uid}`);
+
+  datas = () => this.db.ref("datas");
 }
 
 export default Firebase;

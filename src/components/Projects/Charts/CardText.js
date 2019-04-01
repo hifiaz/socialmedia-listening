@@ -4,7 +4,7 @@ import Trend from "ant-design-pro/lib/Trend";
 import { Icon, Tooltip } from "antd";
 import numeral from "numeral";
 
-const Cardtext = () => (
+const Cardtext = props => (
   <div>
     <ChartCard
       title="Total Data"
@@ -13,7 +13,7 @@ const Cardtext = () => (
           <Icon type="info-circle-o" />
         </Tooltip>
       }
-      total={numeral(126560).format("0,0")}
+      total={numeral(props.chartText).format("0,0")}
       footer={
         <Field
           label="Per hari"
@@ -23,13 +23,13 @@ const Cardtext = () => (
       contentHeight={46}
     >
       <span>
-        Minggu Lalu
+        Week
         <Trend flag="up" style={{ marginLeft: 8, color: "rgba(0,0,0,.85)" }}>
           12%
         </Trend>
       </span>
       <span style={{ marginLeft: 16 }}>
-        Hari ini
+        Today
         <Trend flag="down" style={{ marginLeft: 8, color: "rgba(0,0,0,.85)" }}>
           11%
         </Trend>

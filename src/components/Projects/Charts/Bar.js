@@ -10,12 +10,10 @@ for (let i = 0; i < 7; i += 1) {
   });
 }
 
-function Barchart() {
-  return (
-    <ChartCard title="Sentiment" contentHeight={320}>
-      <Bar title="销售额趋势" data={salesData} />
-    </ChartCard>
-  );
-}
+const Barchart = props => (
+  <ChartCard title="Sentiment" contentHeight={320}>
+    <Bar title="销售额趋势" data={props.chartSentiment} />
+  </ChartCard>
+);
 
 export default Barchart;
