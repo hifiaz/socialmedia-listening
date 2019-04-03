@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 import { ChartCard, MiniArea, Field } from "ant-design-pro/lib/Charts";
 import numeral from "numeral";
@@ -14,23 +14,14 @@ for (let i = 0; i < 20; i += 1) {
     y: Math.floor(Math.random() * 100) + 10
   });
 }
-class Cardtrend extends Component {
-  render() {
-    return (
-      <ChartCard
-        title="Trend Data"
-        total={numeral(8846).format("0,0")}
-        footer={
-          <Field
-            label="Per hari"
-            value={numeral(12423).format("0,0")}
-          />
-        }
-      >
-        <MiniArea line height={45} data={visitData} />
-      </ChartCard>
-    );
-  }
-}
+const Cardtrend = props => (
+  <ChartCard
+    title="Unique User"
+    total={numeral(props.totalUser).format("0,0")}
+    footer={<Field label="Per hari" value={numeral(12423).format("0,0")} />}
+  >
+    <MiniArea line height={45} data={visitData} />
+  </ChartCard>
+);
 
 export default Cardtrend;

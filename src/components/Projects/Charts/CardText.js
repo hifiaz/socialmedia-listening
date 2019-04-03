@@ -13,7 +13,7 @@ const Cardtext = props => (
           <Icon type="info-circle-o" />
         </Tooltip>
       }
-      total={numeral(props.chartText).format("0,0")}
+      total={numeral(props.totalData).format("0,0")}
       footer={
         <Field
           label="Per hari"

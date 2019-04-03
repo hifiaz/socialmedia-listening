@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 import { withAuthorization } from "../Session";
 
-import { Typography, Row, Col, List } from "antd";
+import { Typography, Row, Col } from "antd";
 import Layout from "../Layout/index";
 import Cardtext from "./Charts/CardText";
 import Cardtrend from "./Charts/CardTrend";
@@ -11,8 +11,11 @@ import Cardprogress from "./Charts/CardProgress";
 import Piechart from "./Charts/Pie";
 import Wordcloud from "./Charts/Wordcloud";
 import Tablechart from "./Charts/Table";
+import TableUser from "./Charts/TableUser";
 import Barchart from "./Charts/Bar";
 import Timelinechart from "./Charts/Timeline";
+
+require("./lib/StopWords")
 
 const { Title, Paragraph } = Typography;
 
@@ -23,10 +26,14 @@ class ProjectDetails extends Component {
       loading: false,
       data: null,
       chartTabel: [],
-      chartText: "",
+      tableUser: [],
+      totalData: "",
+      totalUser: "",
+      totalWord: "",
       chartSentiment: [],
       chartTimeline: [],
       chartWordcloud: [],
+      impression:[],
       ...props.location.state
     };
   }
@@ -37,7 +44,8 @@ class ProjectDetails extends Component {
 
     this.props.firebase
       .twitters()
-      .limitToLast(15)
+      .orderByChild("created_at")
+      .limitToLast(10)
       .on("value", snapshot => {
         if (snapshot.exists()) {
           const projectObject = snapshot.val();
@@ -45,52 +53,76 @@ class ProjectDetails extends Component {
             ...projectObject[key],
             key: key
           }));
+          data.sort(
+            (a, b) =>
+              parseFloat(b.user.followers_count) -
+              parseFloat(a.user.followers_count)
+          );
+
+          // parsing to wordcloud
+          let isTextFull = [];
+          let isSumOfWord = {};
+          let kata = [];
+          data.forEach(item => {
+            isTextFull.push(item.text);
+          });
+          
+          let isAllWord = isTextFull.join("\n");
+          let removeWord = isAllWord.removeStopWords()
+          let token = removeWord.split(/\W+/);
+          token.forEach(word => {
+            if (isSumOfWord[word] === undefined) {
+              isSumOfWord[word] = 1;
+            } else {
+              isSumOfWord[word] = isSumOfWord[word] + 1;
+            }
+          });
+          kata = Object.keys(isSumOfWord).map(key => ({
+            ...isSumOfWord[key],
+            name: key,
+            value: isSumOfWord[key]
+          }));
+
+          // console.log(kata);
+          // Parsing to sentiment
+          let negative = data.filter(value => value.sentiment === "negative");
+          let neutral = data.filter(value => value.sentiment === "neutral");
+          let positive = data.filter(value => value.sentiment === "positive");
+          const sentiment = [
+            { x: "negative", y: negative.length },
+            { x: "neutral", y: neutral.length },
+            { x: "positive", y: positive.length }
+          ];
+
+          //parsing to timeline belum bisa dapet datanya
+          const timeline = [{ x: data.created_at, y1: data.length }];
+
+          // partsing to table user
+          let isUserData = data.filter(value => {
+            return !this[value.user.id] && (this[value.user.id] = true);
+          }, Object.create(null));
+
+          // impression
+          let impression = data.map(item => ({
+            x: item.user.screen_name,
+            y: item.user.followers_count
+          }));
+
+          console.log(data);
+
+          this.setState({
+            chartTabel: data,
+            tableUser: isUserData,
+            totalData: data.length,
+            totalUser: isUserData.length,
+            totalWord: kata.length,
+            chartTimeline: timeline,
+            chartSentiment: sentiment,
+            chartWordcloud: kata,
+            impression: impression,
+            loading: false
+          });
         }
-
-        // parsing to wordcloud
-        let textfull = [];
-        let counts = {};
-        let kata = [];
-
-        data.forEach(item => {
-          textfull.push(item.text);
-        });
-        let allword = textfull.join("\n");
-        let token = allword.split(/\W+/);
-        token.forEach(word => {
-          if (counts[word] === undefined) {
-            counts[word] = 1;
-          } else {
-            counts[word] = counts[word] + 1;
-          }
-        });
-        kata = Object.keys(counts).map(key => ({
-          ...counts[key],
-          name: key,
-          value: counts[key]
-        }));
-        // console.log(kata);
-
-        let negative = data.filter(value => value.sentiment === "negative");
-        let neutral = data.filter(value => value.sentiment === "neutral");
-        let positive = data.filter(value => value.sentiment === "positive");
-        const sentiment = [
-          { x: "negative", y: negative.length },
-          { x: "neutral", y: neutral.length },
-          { x: "positive", y: positive.length }
-        ];
-        //belum bisa dapet datanya
-        const timeline = [{ x: data.created_at, y1: data.length }];
-        console.log(data);
-        // console.log(timeline);
-        this.setState({
-          chartTabel: data,
-          chartText: data.length,
-          chartTimeline: timeline,
-          chartSentiment: sentiment,
-          chartWordcloud: kata,
-          loading: false
-        });
       });
   }
 
@@ -104,13 +136,13 @@ class ProjectDetails extends Component {
         <Paragraph>{this.state.data.description}</Paragraph>
         <Row gutter={16} style={{ marginBottom: 12 }}>
           <Col span={6}>
-            <Cardtext chartText={this.state.chartText} />
+            <Cardtext totalData={this.state.totalData} />
           </Col>
           <Col span={6}>
-            <Cardtrend />
+            <Cardtrend totalUser={this.state.totalUser} />
           </Col>
           <Col span={6}>
-            <Cardbar />
+            <Cardbar totalWord={this.state.totalWord} />
           </Col>
           <Col span={6}>
             <Cardprogress />
@@ -130,11 +162,11 @@ class ProjectDetails extends Component {
           </Col>
         </Row>
         <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={16}>
-            
+          <Col span={12}>
+            <TableUser tableUser={this.state.tableUser} />
           </Col>
-          <Col span={8}>
-            <Barchart chartSentiment={this.state.chartSentiment} />
+          <Col span={12}>
+            <Barchart impression={this.state.impression} />
           </Col>
         </Row>
         <Tablechart chartTabel={this.state.chartTabel} />

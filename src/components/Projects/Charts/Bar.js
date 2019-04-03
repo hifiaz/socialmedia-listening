@@ -11,8 +11,8 @@ for (let i = 0; i < 7; i += 1) {
 }
 
 const Barchart = props => (
-  <ChartCard title="Sentiment" contentHeight={320}>
-    <Bar title="销售额趋势" data={props.chartSentiment} />
+  <ChartCard title="Potential Impressions" contentHeight={320}>
+    <Bar title="Every Post" data={props.impression} />
   </ChartCard>
 );
 

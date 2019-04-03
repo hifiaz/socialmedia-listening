@@ -6,6 +6,7 @@ const Piechart = props => (
     <Pie
       hasLegend
       subTitle="Total"
+      color="#900c3f"
       total={() => (
         <span
           dangerouslySetInnerHTML={{

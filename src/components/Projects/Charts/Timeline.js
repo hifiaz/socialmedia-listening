@@ -13,7 +13,7 @@ for (let i = 0; i < 20; i += 1) {
 const Timelinechart = props => (
   <ChartCard contentHeight={300}>
     <TimelineChart
-      data={props.chartTimeline}
+      data={chartData}
       titleMap={{ y1: "客流量", y2: "支付笔数" }}
     />
   </ChartCard>

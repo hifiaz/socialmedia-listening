@@ -4,7 +4,7 @@ import { withFirebase } from "../Firebase";
 import * as ROUTES from "../../constants/routes";
 import { AuthUserContext } from "../Session";
 
-import { Form, Input, Row, Col, Button, Card } from "antd";
+import { Form, Input, Row, Col, Button, Card, Tag, Icon } from "antd";
 import Layout from "../Layout/index";
 
 const { TextArea } = Input;
@@ -13,7 +13,9 @@ const INITIAL_STATE = {
   title: "",
   description: "",
   keywords: "",
-  error: null
+  error: null,
+  tags: [],
+  inputVisible: false
 };
 
 class AddView extends Component {
@@ -22,7 +24,7 @@ class AddView extends Component {
     this.state = { ...INITIAL_STATE };
   }
   onSubmit = event => {
-    const { title, description, keywords } = this.state;
+    const { title, description, tags } = this.state;
     let authUser = JSON.parse(localStorage.getItem("authUser"));
     this.props.firebase
       .project(authUser.uid)
@@ -30,7 +32,7 @@ class AddView extends Component {
         createdAt: this.props.firebase.serverValue.TIMESTAMP,
         title,
         description,
-        keywords
+        tags
       })
       .then(() => {
         this.setState({ ...INITIAL_STATE });
@@ -52,10 +54,69 @@ class AddView extends Component {
       editedAt: this.props.firebase.serverValue.TIMESTAMP
     });
   };
-  render() {
-    const { title, description, keywords, error } = this.state;
 
-    const isInvalid = title === "" || keywords === "";
+  handleClose = removedTag => {
+    const tags = this.state.tags.filter(tag => tag !== removedTag);
+    console.log(tags);
+    this.setState({ tags });
+  };
+
+  showInput = () => {
+    this.setState({ inputVisible: true }, () => this.input.focus());
+  };
+
+  handleInputChange = e => {
+    this.setState({ keywords: e.target.value });
+  };
+
+  handleInputConfirm = () => {
+    const { keywords } = this.state;
+    let { tags } = this.state;
+    if (keywords && tags.indexOf(keywords) === -1) {
+      tags = [...tags, keywords];
+    }
+    console.log(tags);
+    this.setState({
+      tags,
+      inputVisible: false,
+      keywords: ""
+    });
+  };
+
+  saveInputRef = input => (this.input = input);
+
+  forMap = tag => {
+    const tagElem = (
+      <Tag
+        closable
+        onClose={e => {
+          e.preventDefault();
+          this.handleClose(tag);
+        }}
+      >
+        {tag}
+      </Tag>
+    );
+    return (
+      <span key={tag} style={{ display: "inline-block" }}>
+        {tagElem}
+      </span>
+    );
+  };
+  render() {
+    const {
+      title,
+      description,
+      tags,
+      inputVisible,
+      keywords,
+      error
+    } = this.state;
+
+    const isInvalid = title === "";
+
+    const tagChild = tags.map(this.forMap);
+
     return (
       <AuthUserContext.Consumer>
         {authUser => (
@@ -79,14 +140,15 @@ class AddView extends Component {
                       />
                     </Form.Item>
                     <Form.Item label="Description">
-                      <Input
+                      <TextArea
                         name="description"
                         value={description}
                         onChange={this.onChange}
                         type="textarea"
+                        rows={4}
                       />
                     </Form.Item>
-                    <Form.Item label="Keywords">
+                    {/* <Form.Item label="Keywords">
                       <TextArea
                         name="keywords"
                         value={keywords}
@@ -94,6 +156,29 @@ class AddView extends Component {
                         type="textarea"
                         rows={4}
                       />
+                    </Form.Item> */}
+                    <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
+                      <div style={{ marginBottom: 16 }}>{tagChild}</div>
+                      {inputVisible && (
+                        <Input
+                          ref={this.saveInputRef}
+                          type="text"
+                          size="small"
+                          style={{ width: 78 }}
+                          value={keywords}
+                          onChange={this.handleInputChange}
+                          onBlur={this.handleInputConfirm}
+                          onPressEnter={this.handleInputConfirm}
+                        />
+                      )}
+                      {!inputVisible && (
+                        <Tag
+                          onClick={this.showInput}
+                          style={{ background: "#fff", borderStyle: "dashed" }}
+                        >
+                          <Icon type="plus" /> New Keyword
+                        </Tag>
+                      )}
                     </Form.Item>
                     <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
                       <Button
