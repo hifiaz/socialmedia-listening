@@ -1,20 +1,7 @@
-image: node:latest
-
-cache:
-  paths:
-    - node_modules/
-
-before_script:
-  - npm install
-
-pages:
-  stage: deploy
-  script:
-    - CI=false npm run build
-    - rm -rf public
-    - mv build public
-  artifacts:
-    paths:
-      - public # GitLab pages serve from a 'public' directory
-  only:
-    - master # run on master branch
+heroku:
+ stage: deploy
+ only:
+ - master
+ script:
+ - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/duende-monitoring.git
+ - git push -f heroku master
