@@ -3,5 +3,5 @@ heroku:
  only:
  - master
  script:
- - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/duende-monitoring.git
- - git push -f heroku HEAD:master
+ - git remote add heroku https://heroku:$HEROKU_API_KEY@git.heroku.com/duende-monitoring.git -q
+ - git push -f heroku master
