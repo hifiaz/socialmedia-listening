@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
+import React, { Component } from "react";
+import { Link } from "react-router-dom";
+import { Form, Input, Button } from "antd";
 
-import { withFirebase } from '../Firebase';
-import * as ROUTES from '../../constants/routes';
+import { withFirebase } from "../Firebase";
+import * as ROUTES from "../../constants/routes";
 
 const PasswordForgetPage = () => (
   <div>
@@ -12,8 +13,8 @@ const PasswordForgetPage = () => (
 );
 
 const INITIAL_STATE = {
-  email: '',
-  error: null,
+  email: "",
+  error: null
 };
 
 class PasswordForgetFormBase extends Component {
@@ -45,23 +46,27 @@ class PasswordForgetFormBase extends Component {
   render() {
     const { email, error } = this.state;
 
-    const isInvalid = email === '';
+    const isInvalid = email === "";
 
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="email"
-          value={this.state.email}
-          onChange={this.onChange}
-          type="text"
-          placeholder="Email Address"
-        />
-        <button disabled={isInvalid} type="submit">
-          Reset My Password
-        </button>
+      <Form onSubmit={this.onSubmit} layout="inline" className="signup-form">
+        <Form.Item>
+          <Input
+            name="email"
+            value={this.state.email}
+            onChange={this.onChange}
+            type="text"
+            placeholder="Email Address"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button disabled={isInvalid} type="submit">
+            Reset My Password
+          </Button>
+        </Form.Item>
 
         {error && <p>{error.message}</p>}
-      </form>
+      </Form>
     );
   }
 }

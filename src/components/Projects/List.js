@@ -15,29 +15,23 @@ class ListView extends Component {
 
     this.state = {
       loading: false,
-      data: []
+      projects: []
     };
   }
 
   componentDidMount() {
     this.setState({ loading: true });
 
-    let authUser = JSON.parse(localStorage.getItem("authUser"));
-    let data;
+    // this.unsubscribe = this.props.firebase.projects().onSnapshot(snapshot => {
+    //   let projects = [];
 
-    this.props.firebase.project(authUser.uid).on("value", snapshot => {
-      if (snapshot.exists()) {
-        const projectObject = snapshot.val();
-        data = Object.keys(projectObject).map(key => ({
-          ...projectObject[key],
-          key: key
-        }));
-      }
-      this.setState({
-        data: data,
-        loading: false
-      });
-    });
+    //   snapshot.forEach(doc => projects.push({ ...doc.data(), uid: doc.id }));
+
+    //   this.setState({
+    //     projects,
+    //     loading: false
+    //   });
+    // });
   }
 
   onRemoveProject = event => {
@@ -51,17 +45,17 @@ class ListView extends Component {
   };
 
   componentWillUnmount() {
-    this.props.firebase.project().off();
+    this.unsubscribe();
   }
   render() {
-    const { data } = this.state;
+    const { projects } = this.state;
     return (
       <Layout>
         <h1>List</h1>
 
         <p>All projects will display in here</p>
         <Card bordered={false}>
-          <Table dataSource={data}>
+          <Table dataSource={projects}>
             <Column title="Title" dataIndex="title" key="title" />
             <Column
               title="Description"

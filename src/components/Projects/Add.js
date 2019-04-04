@@ -1,8 +1,10 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
+import { compose } from "recompose";
 
 import { withFirebase } from "../Firebase";
+import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
-import { AuthUserContext } from "../Session";
 
 import { Form, Input, Row, Col, Button, Card, Tag, Icon } from "antd";
 import Layout from "../Layout/index";
@@ -26,12 +28,14 @@ class AddView extends Component {
   onSubmit = event => {
     const { title, description, tags } = this.state;
     let authUser = JSON.parse(localStorage.getItem("authUser"));
+    let createdAt = Date.now();
     this.props.firebase
-      .project(authUser.uid)
-      .push({
-        createdAt: this.props.firebase.serverValue.TIMESTAMP,
+      .project()
+      .set({
+        createdAt,
         title,
         description,
+        authUser,
         tags
       })
       .then(() => {
@@ -118,37 +122,35 @@ class AddView extends Component {
     const tagChild = tags.map(this.forMap);
 
     return (
-      <AuthUserContext.Consumer>
-        {authUser => (
-          <Layout>
-            <h1>Add</h1>
-            <p>Setup keyword to grab data for your analytics</p>
-            <Card bordered={false}>
-              <Row>
-                <Col span={16}>
-                  <Form
-                    onSubmit={this.onSubmit}
-                    labelCol={{ span: 5 }}
-                    wrapperCol={{ span: 12 }}
-                  >
-                    <Form.Item label="Title">
-                      <Input
-                        name="title"
-                        value={title}
-                        onChange={this.onChange}
-                        type="text"
-                      />
-                    </Form.Item>
-                    <Form.Item label="Description">
-                      <TextArea
-                        name="description"
-                        value={description}
-                        onChange={this.onChange}
-                        type="textarea"
-                        rows={4}
-                      />
-                    </Form.Item>
-                    {/* <Form.Item label="Keywords">
+      <Layout>
+        <h1>Add</h1>
+        <p>Setup keyword to grab data for your analytics</p>
+        <Card bordered={false}>
+          <Row>
+            <Col span={16}>
+              <Form
+                onSubmit={this.onSubmit}
+                labelCol={{ span: 5 }}
+                wrapperCol={{ span: 12 }}
+              >
+                <Form.Item label="Title">
+                  <Input
+                    name="title"
+                    value={title}
+                    onChange={this.onChange}
+                    type="text"
+                  />
+                </Form.Item>
+                <Form.Item label="Description">
+                  <TextArea
+                    name="description"
+                    value={description}
+                    onChange={this.onChange}
+                    type="textarea"
+                    rows={4}
+                  />
+                </Form.Item>
+                {/* <Form.Item label="Keywords">
                       <TextArea
                         name="keywords"
                         value={keywords}
@@ -157,57 +159,55 @@ class AddView extends Component {
                         rows={4}
                       />
                     </Form.Item> */}
-                    <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
-                      <div style={{ marginBottom: 16 }}>{tagChild}</div>
-                      {inputVisible && (
-                        <Input
-                          ref={this.saveInputRef}
-                          type="text"
-                          size="small"
-                          style={{ width: 78 }}
-                          value={keywords}
-                          onChange={this.handleInputChange}
-                          onBlur={this.handleInputConfirm}
-                          onPressEnter={this.handleInputConfirm}
-                        />
-                      )}
-                      {!inputVisible && (
-                        <Tag
-                          onClick={this.showInput}
-                          style={{ background: "#fff", borderStyle: "dashed" }}
-                        >
-                          <Icon type="plus" /> New Keyword
-                        </Tag>
-                      )}
-                    </Form.Item>
-                    <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
-                      <Button
-                        disabled={isInvalid}
-                        type="primary"
-                        htmlType="submit"
-                      >
-                        Save
-                      </Button>
-                    </Form.Item>
-                    {error && <p>{error.message}</p>}
-                  </Form>
-                </Col>
-                <Col span={8}>
-                  <p>Guide</p>
-                </Col>
-              </Row>
-            </Card>
-          </Layout>
-        )}
-      </AuthUserContext.Consumer>
+                <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
+                  <div style={{ marginBottom: 16 }}>{tagChild}</div>
+                  {inputVisible && (
+                    <Input
+                      ref={this.saveInputRef}
+                      type="text"
+                      size="small"
+                      style={{ width: 78 }}
+                      value={keywords}
+                      onChange={this.handleInputChange}
+                      onBlur={this.handleInputConfirm}
+                      onPressEnter={this.handleInputConfirm}
+                    />
+                  )}
+                  {!inputVisible && (
+                    <Tag
+                      onClick={this.showInput}
+                      style={{ background: "#fff", borderStyle: "dashed" }}
+                    >
+                      <Icon type="plus" /> New Keyword
+                    </Tag>
+                  )}
+                </Form.Item>
+                <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
+                  <Button disabled={isInvalid} type="primary" htmlType="submit">
+                    Save
+                  </Button>
+                </Form.Item>
+                {error && <p>{error.message}</p>}
+              </Form>
+            </Col>
+            <Col span={8}>
+              <p>Guide</p>
+            </Col>
+          </Row>
+        </Card>
+      </Layout>
     );
   }
 }
-// const condition = authUser => !!authUser;
 
-// const AddDataForm = compose(
-//   withAuthorization,
-//   withFirebase
-// )(AddView);
+const mapStateToProps = state => ({
+  authUser: state.sessionState.authUser
+});
 
-export default withFirebase(AddView);
+const condition = authUser => !!authUser;
+
+export default compose(
+  connect(mapStateToProps),
+  withFirebase,
+  withAuthorization(condition)
+)(AddView);

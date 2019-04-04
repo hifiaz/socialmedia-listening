@@ -1,23 +1,16 @@
 import React, { Component } from "react";
+import { Tabs } from "antd";
+import { connect } from "react-redux";
+import { compose } from "recompose";
 
 import { withAuthorization } from "../Session";
 
-import { Typography, Row, Col } from "antd";
 import Layout from "../Layout/index";
-import Cardtext from "./Charts/CardText";
-import Cardtrend from "./Charts/CardTrend";
-import Cardbar from "./Charts/CardBar";
-import Cardprogress from "./Charts/CardProgress";
-import Piechart from "./Charts/Pie";
-import Wordcloud from "./Charts/Wordcloud";
-import Tablechart from "./Charts/Table";
-import TableUser from "./Charts/TableUser";
-import Barchart from "./Charts/Bar";
-import Timelinechart from "./Charts/Timeline";
+import Twitter from "./Pages/Twitter";
 
-require("./lib/StopWords")
+require("./lib/StopWords");
 
-const { Title, Paragraph } = Typography;
+const TabPane = Tabs.TabPane;
 
 class ProjectDetails extends Component {
   constructor(props) {
@@ -25,156 +18,35 @@ class ProjectDetails extends Component {
     this.state = {
       loading: false,
       data: null,
-      chartTabel: [],
-      tableUser: [],
-      totalData: "",
-      totalUser: "",
-      totalWord: "",
-      chartSentiment: [],
-      chartTimeline: [],
-      chartWordcloud: [],
-      impression:[],
       ...props.location.state
     };
-  }
-
-  componentDidMount() {
-    this.setState({ loading: true });
-    let data;
-
-    this.props.firebase
-      .twitters()
-      .orderByChild("created_at")
-      .limitToLast(10)
-      .on("value", snapshot => {
-        if (snapshot.exists()) {
-          const projectObject = snapshot.val();
-          data = Object.keys(projectObject).map(key => ({
-            ...projectObject[key],
-            key: key
-          }));
-          data.sort(
-            (a, b) =>
-              parseFloat(b.user.followers_count) -
-              parseFloat(a.user.followers_count)
-          );
-
-          // parsing to wordcloud
-          let isTextFull = [];
-          let isSumOfWord = {};
-          let kata = [];
-          data.forEach(item => {
-            isTextFull.push(item.text);
-          });
-          
-          let isAllWord = isTextFull.join("\n");
-          let removeWord = isAllWord.removeStopWords()
-          let token = removeWord.split(/\W+/);
-          token.forEach(word => {
-            if (isSumOfWord[word] === undefined) {
-              isSumOfWord[word] = 1;
-            } else {
-              isSumOfWord[word] = isSumOfWord[word] + 1;
-            }
-          });
-          kata = Object.keys(isSumOfWord).map(key => ({
-            ...isSumOfWord[key],
-            name: key,
-            value: isSumOfWord[key]
-          }));
-
-          // console.log(kata);
-          // Parsing to sentiment
-          let negative = data.filter(value => value.sentiment === "negative");
-          let neutral = data.filter(value => value.sentiment === "neutral");
-          let positive = data.filter(value => value.sentiment === "positive");
-          const sentiment = [
-            { x: "negative", y: negative.length },
-            { x: "neutral", y: neutral.length },
-            { x: "positive", y: positive.length }
-          ];
-
-          //parsing to timeline belum bisa dapet datanya
-          const timeline = [{ x: data.created_at, y1: data.length }];
-
-          // partsing to table user
-          let isUserData = data.filter(value => {
-            return !this[value.user.id] && (this[value.user.id] = true);
-          }, Object.create(null));
-
-          // impression
-          let impression = data.map(item => ({
-            x: item.user.screen_name,
-            y: item.user.followers_count
-          }));
-
-          console.log(data);
-
-          this.setState({
-            chartTabel: data,
-            tableUser: isUserData,
-            totalData: data.length,
-            totalUser: isUserData.length,
-            totalWord: kata.length,
-            chartTimeline: timeline,
-            chartSentiment: sentiment,
-            chartWordcloud: kata,
-            impression: impression,
-            loading: false
-          });
-        }
-      });
-  }
-
-  componentWillUnmount() {
-    this.props.firebase.twitter().off();
   }
   render() {
     return (
       <Layout>
-        <Title level={2}>{this.state.data.title}</Title>
-        <Paragraph>{this.state.data.description}</Paragraph>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={6}>
-            <Cardtext totalData={this.state.totalData} />
-          </Col>
-          <Col span={6}>
-            <Cardtrend totalUser={this.state.totalUser} />
-          </Col>
-          <Col span={6}>
-            <Cardbar totalWord={this.state.totalWord} />
-          </Col>
-          <Col span={6}>
-            <Cardprogress />
-          </Col>
-        </Row>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={12}>
-            <Piechart chartSentiment={this.state.chartSentiment} />
-          </Col>
-          <Col span={12}>
-            <Wordcloud chartWordcloud={this.state.chartWordcloud} />
-          </Col>
-        </Row>
-        <Row style={{ marginBottom: 12 }}>
-          <Col span={24}>
-            <Timelinechart />
-          </Col>
-        </Row>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={12}>
-            <TableUser tableUser={this.state.tableUser} />
-          </Col>
-          <Col span={12}>
-            <Barchart impression={this.state.impression} />
-          </Col>
-        </Row>
-        <Tablechart chartTabel={this.state.chartTabel} />
+        <Tabs defaultActiveKey="1">
+          <TabPane tab="Twitter" key="1">
+            <Twitter />
+          </TabPane>
+          <TabPane tab="Instagram" key="2">
+            Content of Tab Pane 2
+          </TabPane>
+          <TabPane tab="News" key="3">
+            Content of Tab Pane 3
+          </TabPane>
+        </Tabs>
       </Layout>
     );
   }
 }
 
+const mapStateToProps = state => ({
+  authUser: state.sessionState.authUser
+});
+
 const condition = authUser => !!authUser;
 
-export default withAuthorization(condition)(ProjectDetails);
+export default compose(
+  connect(mapStateToProps),
+  withAuthorization(condition)
+)(ProjectDetails);

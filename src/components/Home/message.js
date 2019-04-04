@@ -1,11 +1,8 @@
 import React, { Component } from "react";
+import { connect } from "react-redux";
 import { compose } from "recompose";
 
-import {
-  AuthUserContext,
-  withAuthorization,
-  withEmailVerification
-} from "../Session";
+import { withAuthorization, withEmailVerification } from "../Session";
 import { withFirebase } from "../Firebase";
 import { Typography } from "antd";
 import Layout from "../Layout/index";
@@ -184,10 +181,23 @@ class MessageItem extends Component {
     );
   }
 }
+const mapStateToProps = state => ({
+  users: state.userState.users
+});
+
+const mapDispatchToProps = dispatch => ({
+  onSetUsers: users => dispatch({ type: "USERS_SET", users })
+});
+
 const Messages = withFirebase(MessagesBase);
 const condition = authUser => !!authUser;
 
 export default compose(
+  withFirebase,
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  ),
   withEmailVerification,
   withAuthorization(condition)
 )(Message);

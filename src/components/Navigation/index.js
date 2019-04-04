@@ -1,67 +1,44 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { connect } from "react-redux";
 import { Layout, Menu } from "antd";
 
 import SignOutButton from "../SignOut";
 import * as ROUTES from "../../constants/routes";
-// import * as ROLES from "../../constants/roles";
-import { AuthUserContext } from "../Session";
+import * as ROLES from "../../constants/roles";
 
 const { Header } = Layout;
 
-class Navigation extends React.Component {
-  render() {
-    return (
-      <Header style={{ background: "#fff", padding: 0 }}>
-        <AuthUserContext.Consumer>
-          {authUser =>
-            authUser ? (
-              <NavigationAuth authUser={authUser} />
-            ) : (
-              <NavigationNonAuth />
-            )
-          }
-        </AuthUserContext.Consumer>
-      </Header>
-    );
-  }
-}
+const Navigation = ({ authUser }) =>
+  authUser ? (
+    <Header style={{ background: "#fff", padding: 0 }}>
+      <NavigationAuth authUser={authUser} />
+    </Header>
+  ) : (
+    <Header style={{ background: "#fff", padding: 0 }}>
+      <NavigationNonAuth />
+    </Header>
+  );
 
-class NavigationAuth extends Component {
-  state = {
-    current: "home"
-  };
-
-  handleClick = e => {
-    // console.log("click ", e);
-    this.setState({
-      current: e.key
-    });
-  };
-  render() {
-    return (
-      <Menu
-        mode="horizontal"
-        onClick={this.handleClick}
-        selectedKeys={[this.state.current]}
-        style={{ lineHeight: "64px", float: "right", paddingRight: "1rem" }}
-      >
-        <Menu.Item key="home">
-          <Link to={ROUTES.HOME}>Home</Link>
-        </Menu.Item>
-        <Menu.Item key="account">
-          <Link to={ROUTES.ACCOUNT}>Account</Link>
-        </Menu.Item>
-        {/* {authUser.roles.includes(ROLES.ADMIN) && ( */}
-        <Menu.Item key="admin">
-          <Link to={ROUTES.ADMIN}>Admin</Link>
-        </Menu.Item>
-        {/* )} */}
-        <SignOutButton />
-      </Menu>
-    );
-  }
-}
+const NavigationAuth = ({ authUser }) => (
+  <Menu
+    mode="horizontal"
+    style={{ lineHeight: "64px", float: "right", paddingRight: "1rem" }}
+  >
+    <Menu.Item key="home">
+      <Link to={ROUTES.HOME}>Home</Link>
+    </Menu.Item>
+    <Menu.Item key="account">
+      <Link to={ROUTES.ACCOUNT}>Account</Link>
+    </Menu.Item>
+    {authUser.roles.includes(ROLES.ADMIN) && (
+      <Menu.Item key="admin">
+        <Link to={ROUTES.ADMIN}>Admin</Link>
+      </Menu.Item>
+    )}
+    <SignOutButton />
+  </Menu>
+);
 
 class NavigationNonAuth extends Component {
   state = {
@@ -94,4 +71,8 @@ class NavigationNonAuth extends Component {
   }
 }
 
-export default Navigation;
+const mapStateToProps = state => ({
+  authUser: state.sessionState.authUser
+});
+
+export default connect(mapStateToProps)(Navigation);

@@ -1,5 +1,7 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import { connect } from "react-redux";
+import { compose } from "recompose";
 
 import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
@@ -12,9 +14,11 @@ const { Meta } = Card;
 //   const [title, description] = useState("");
 //   const [datas, setDatas] = useState({});
 
-//   let authUser = JSON.parse(localStorage.getItem("authUser"));
+//   // let authUser = JSON.parse(localStorage.getItem("authUser"));
 
-//   const projects = this.props.firebase.project(authUser.uid);
+//   const projects = () => {
+//     this.props.firebase.project();
+//   };
 
 //   useEffect(() => {
 //     const handlingProject = snap => {
@@ -82,34 +86,31 @@ class CardDisplay extends Component {
     super(props);
 
     this.state = {
-      loading: true,
-      datas: []
+      loading: true
     };
   }
 
   componentDidMount() {
     this.setState({ loading: true });
 
-    let authUser = JSON.parse(localStorage.getItem("authUser"));
-    let data;
+    this.unsubscribe = this.props.firebase.projects().onSnapshot(snapshot => {
+      if (snapshot.size) {
+        let isProjectList = [];
+        snapshot.forEach(doc => {
+          isProjectList.push({ ...doc.data(), uid: doc.id });
+        });
+        this.props.onSetProjects(isProjectList);
 
-    this.props.firebase.project(authUser.uid).on("value", snapshot => {
-      if (snapshot.exists()) {
-        const projectObject = snapshot.val();
-        data = Object.keys(projectObject).map(key => ({
-          ...projectObject[key],
-          key: key
-        }));
+        this.setState({
+          loading: false
+        });
       }
-      this.setState({
-        data: data,
-        loading: false
-      });
+      this.setState({ isProjectList: null, loading: false });
     });
   }
 
   componentWillUnmount() {
-    this.props.firebase.project().off();
+    this.unsubscribe();
   }
 
   onRemoveProject = id => {
@@ -122,11 +123,11 @@ class CardDisplay extends Component {
   };
 
   render() {
-    const { data } = this.state;
+    const { projects } = this.props;
     return (
       <List
         grid={{ gutter: 16, column: 4 }}
-        dataSource={data}
+        dataSource={projects}
         renderItem={data => (
           <List.Item>
             <Card
@@ -140,11 +141,11 @@ class CardDisplay extends Component {
               actions={[
                 <Icon
                   type="delete"
-                  onClick={() => this.onRemoveProject(data.key)}
+                  onClick={() => this.onRemoveProject(data.uid)}
                 />,
                 <Link
                   to={{
-                    pathname: `${ROUTES.EDITPROJECT}/${data.key}`,
+                    pathname: `${ROUTES.EDITPROJECT}/${data.uid}`,
                     state: { data }
                   }}
                 >
@@ -152,7 +153,7 @@ class CardDisplay extends Component {
                 </Link>,
                 <Link
                   to={{
-                    pathname: `${ROUTES.DETAILS_PROJECT}/${data.key}`,
+                    pathname: `${ROUTES.DETAILS_PROJECT}/${data.uid}`,
                     state: { data }
                   }}
                 >
@@ -175,6 +176,22 @@ class CardDisplay extends Component {
   }
 }
 
+const mapStateToProps = state => ({
+  projects: Object.keys(state.projectState.projects || {}).map(key => ({
+    ...state.projectState.projects[key]
+  }))
+});
+
+const mapDispatchToProps = dispatch => ({
+  onSetProjects: projects => dispatch({ type: "PROJECTS_SET", projects })
+});
+
 const condition = authUser => !!authUser;
 
-export default withAuthorization(condition)(CardDisplay);
+export default compose(
+  withAuthorization(condition),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )
+)(CardDisplay);

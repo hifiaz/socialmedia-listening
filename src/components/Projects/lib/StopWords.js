@@ -6,8 +6,9 @@ String.isStopWord = function(word) {
     return true;
   }
 };
-
+// eslint-disable-next-line
 String.prototype.removeStopWords = function() {
+  // eslint-disable-next-line
   let words = new Array();
 
   this.replace(/\b[\w]+\b/g, function($0) {
