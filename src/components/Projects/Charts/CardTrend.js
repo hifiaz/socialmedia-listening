@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChartCard, MiniArea, Field } from "ant-design-pro/lib/Charts";
+import { ChartCard, MiniArea } from "ant-design-pro/lib/Charts";
 import numeral from "numeral";
 import moment from "moment";
 
@@ -16,9 +16,10 @@ for (let i = 0; i < 20; i += 1) {
 }
 const Cardtrend = props => (
   <ChartCard
-    title="Unique User"
+    title="Total"
     total={numeral(props.totalUser).format("0,0")}
-    footer={<Field label="Per hari" value={numeral(12423).format("0,0")} />}
+    footer="Unique User"
+    loading={props.loading}
   >
     <MiniArea line height={45} data={visitData} />
   </ChartCard>

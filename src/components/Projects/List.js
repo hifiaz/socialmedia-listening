@@ -22,16 +22,16 @@ class ListView extends Component {
   componentDidMount() {
     this.setState({ loading: true });
 
-    // this.unsubscribe = this.props.firebase.projects().onSnapshot(snapshot => {
-    //   let projects = [];
+    this.unsubscribe = this.props.firebase.projects().onSnapshot(snapshot => {
+      let projects = [];
 
-    //   snapshot.forEach(doc => projects.push({ ...doc.data(), uid: doc.id }));
+      snapshot.forEach(doc => projects.push({ ...doc.data(), uid: doc.id }));
 
-    //   this.setState({
-    //     projects,
-    //     loading: false
-    //   });
-    // });
+      this.setState({
+        projects,
+        loading: false
+      });
+    });
   }
 
   onRemoveProject = event => {

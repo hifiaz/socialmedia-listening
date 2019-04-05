@@ -1,5 +1,5 @@
 import React from "react";
-import { ChartCard, Field } from "ant-design-pro/lib/Charts";
+import { ChartCard } from "ant-design-pro/lib/Charts";
 import Trend from "ant-design-pro/lib/Trend";
 import { Icon, Tooltip } from "antd";
 import numeral from "numeral";
@@ -7,20 +7,16 @@ import numeral from "numeral";
 const Cardtext = props => (
   <div>
     <ChartCard
-      title="Total Data"
+      title="Total"
       action={
         <Tooltip title="Total data">
           <Icon type="info-circle-o" />
         </Tooltip>
       }
       total={numeral(props.totalData).format("0,0")}
-      footer={
-        <Field
-          label="Per hari"
-          value={numeral(12423).format("0,0")}
-        />
-      }
+      footer="All Data"
       contentHeight={46}
+      loading={props.loading}
     >
       <span>
         Week

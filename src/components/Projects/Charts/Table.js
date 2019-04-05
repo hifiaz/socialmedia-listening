@@ -1,7 +1,9 @@
 import React from "react";
 
 import { withAuthorization } from "../../Session";
-import { Table, Card, Avatar } from "antd";
+import { Table, Card, Avatar, Skeleton } from "antd";
+import moment from "moment";
+moment.locale("id");
 
 const columns = [
   {
@@ -14,6 +16,12 @@ const columns = [
     title: "Username",
     dataIndex: "user.name",
     key: "user.name"
+  },
+  {
+    title: "Date",
+    // dataIndex: moment.unix("created_at").format("YYYY-MM-DD"),
+    key: "created_at",
+    render: (text, record) => <p>{moment(record.created_at).format("LLLL")}</p>
   },
   {
     title: "Convo",
@@ -32,7 +40,10 @@ const columns = [
       <span>
         <a
           href={
-            "https://twitter.com/" + record.user.id + "/statuses/" + record.id
+            "https://twitter.com/" +
+            record.user.screen_name +
+            "/statuses/" +
+            record.id
           }
           target="_blank"
           rel="noopener noreferrer"
@@ -50,11 +61,14 @@ function onChange(pagination, filters, sorter) {
 
 const TableView = props => (
   <Card>
-    <Table
-      columns={columns}
-      dataSource={props.chartTabel}
-      onChange={onChange}
-    />
+    <Skeleton loading={props.loading} avatar active>
+      <Table
+        rowKey={record => record.id}
+        columns={columns}
+        dataSource={props.chartTabel}
+        onChange={onChange}
+      />
+    </Skeleton>
   </Card>
 );
 

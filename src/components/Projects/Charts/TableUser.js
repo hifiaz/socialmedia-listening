@@ -1,11 +1,11 @@
 import React from "react";
 
 import { withAuthorization } from "../../Session";
-import { Table, Card, Avatar } from "antd";
+import { Table, Card, Avatar, Skeleton } from "antd";
 
 const columns = [
   {
-    title: "",
+    title: "Profile",
     dataIndex: "user.profile_image_url",
     key: "user.profile_image_url",
     render: id => <Avatar src={id} />
@@ -50,11 +50,14 @@ function onChange(pagination, filters, sorter) {
 
 const TableUser = props => (
   <Card>
-    <Table
-      columns={columns}
-      dataSource={props.tableUser}
-      onChange={onChange}
-    />
+    <Skeleton loading={props.loading} avatar active>
+      <Table
+        rowKey={record => record.id}
+        columns={columns}
+        dataSource={props.tableUser}
+        onChange={onChange}
+      />
+    </Skeleton>
   </Card>
 );
 

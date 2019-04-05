@@ -1,6 +1,6 @@
-import React, { Component } from "react";
+import React from "react";
 
-import { ChartCard, MiniProgress, Field } from "ant-design-pro/lib/Charts";
+import { ChartCard, MiniProgress } from "ant-design-pro/lib/Charts";
 import numeral from "numeral";
 import moment from "moment";
 
@@ -14,19 +14,16 @@ for (let i = 0; i < 20; i += 1) {
     y: Math.floor(Math.random() * 100) + 10
   });
 }
-class Cardprogress extends Component {
-  render() {
-    return (
-      <ChartCard
-        contentHeight={46}
-        title="Trend Data"
-        total={numeral(8846).format("0,0")}
-        footer={<Field label="Per hari" value={numeral(12423).format("0,0")} />}
-      >
-        <MiniProgress percent={78} strokeWidth={8} target={80} />
-      </ChartCard>
-    );
-  }
-}
+const Cardprogress = props => (
+  <ChartCard
+    contentHeight={46}
+    title="Total"
+    total={numeral(props.totalImpression).format("0,0")}
+    footer="Potential Impression"
+    loading={props.loading}
+  >
+    <MiniProgress percent={78} strokeWidth={8} target={80} />
+  </ChartCard>
+);
 
 export default Cardprogress;

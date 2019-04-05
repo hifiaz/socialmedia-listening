@@ -1,6 +1,11 @@
 import React, { Component } from "react";
+import moment from "moment";
+import _ from "lodash";
 
 import { withAuthorization } from "../../Session";
+
+import { connect } from "react-redux";
+import { compose } from "recompose";
 
 import { Typography, Row, Col } from "antd";
 import Cardtext from "../Charts/CardText";
@@ -22,14 +27,15 @@ class ProjectDetails extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loading: false,
-      data: null,
+      loading: true,
       chartTabel: [],
       tableUser: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
+      totalImpression: "",
       chartSentiment: [],
+      chartSource: [],
       chartTimeline: [],
       chartWordcloud: [],
       impression: [],
@@ -39,15 +45,18 @@ class ProjectDetails extends Component {
 
   componentDidMount() {
     this.setState({ loading: true });
-    let data;
-
     this.unsubscribe = this.props.firebase.twitters().onSnapshot(snapshot => {
       if (snapshot.size) {
-        const projectObject = snapshot.val();
-        data = Object.keys(projectObject).map(key => ({
-          ...projectObject[key],
-          key: key
-        }));
+        // data = Object.keys(snapshot).map(key => ({
+        //   ...snapshot[key],
+        //   key: key
+        // }));
+        let data = [];
+        snapshot.forEach(doc => {
+          data.push({ ...doc.data(), uid: doc.id });
+        });
+        this.props.onSetTwitters(data);
+
         data.sort(
           (a, b) =>
             parseFloat(b.user.followers_count) -
@@ -89,8 +98,38 @@ class ProjectDetails extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        //parsing to timeline belum bisa dapet datanya
-        const timeline = [{ x: data.created_at, y1: data.length }];
+        // Source
+        let srcAndroid = data.filter(
+          value =>
+            value.source ===
+            '<a href="http://twitter.com/download/android" rel="nofollow">Twitter for Android</a>'
+        );
+        let srcWeb = data.filter(
+          value =>
+            value.source ===
+            '<a href="http://twitter.com" rel="nofollow">Twitter Web Client</a>'
+        );
+        let srcIphone = data.filter(
+          value =>
+            value.source ===
+            '<a href="http://twitter.com/download/iphone" rel="nofollow">Twitter for iPhone</a>'
+        );
+        let srcTweetDeck = data.filter(
+          value =>
+            value.source ===
+            '<a href="https://about.twitter.com/products/tweetdeck" rel="nofollow">TweetDeck</a>'
+        );
+        let srcOther = data.filter(
+          value =>
+            value.source !== srcAndroid || srcWeb || srcIphone || srcTweetDeck
+        );
+        const source = [
+          { x: "Android", y: srcAndroid.length },
+          { x: "Web", y: srcWeb.length },
+          { x: "Iphone", y: srcIphone.length },
+          { x: "TweetDeck", y: srcTweetDeck.length },
+          { x: "Other", y: srcOther.length }
+        ];
 
         // partsing to table user
         let isUserData = data.filter(value => {
@@ -103,7 +142,18 @@ class ProjectDetails extends Component {
           y: item.user.followers_count
         }));
 
-        console.log(data);
+        // Total impression
+        let totalImpression = data.map(item => item.user.followers_count);
+        let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
+
+        // Group data
+        const isKeyFilter = item => moment(item.created_at).format("llll");
+        // const isKeyFilter = item => item.created_at;
+        const isGroupData = _.groupBy(data, isKeyFilter);
+        var isGroup = Object.keys(isGroupData).map(key => {
+          return { x: moment(key).unix(), y1: isGroupData[key].length };
+        });
+        console.log(isGroupData);
 
         this.setState({
           chartTabel: data,
@@ -111,8 +161,10 @@ class ProjectDetails extends Component {
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
-          chartTimeline: timeline,
+          totalImpression: isTotalImpression,
+          chartTimeline: isGroup,
           chartSentiment: sentiment,
+          chartSource: source,
           chartWordcloud: kata,
           impression: impression,
           loading: false
@@ -129,47 +181,97 @@ class ProjectDetails extends Component {
       <div>
         <Title level={2}>{this.state.data.title}</Title>
         <Paragraph>{this.state.data.description}</Paragraph>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
+        <Row gutter={24} style={{ marginBottom: 24 }}>
           <Col span={6}>
-            <Cardtext totalData={this.state.totalData} />
-          </Col>
-          <Col span={6}>
-            <Cardtrend totalUser={this.state.totalUser} />
-          </Col>
-          <Col span={6}>
-            <Cardbar totalWord={this.state.totalWord} />
+            <Cardtext
+              totalData={this.state.totalData}
+              loading={this.state.loading}
+            />
           </Col>
           <Col span={6}>
-            <Cardprogress />
+            <Cardtrend
+              totalUser={this.state.totalUser}
+              loading={this.state.loading}
+            />
           </Col>
-        </Row>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
-          <Col span={12}>
-            <Piechart chartSentiment={this.state.chartSentiment} />
+          <Col span={6}>
+            <Cardbar
+              totalWord={this.state.totalWord}
+              loading={this.state.loading}
+            />
           </Col>
-          <Col span={12}>
-            <Wordcloud chartWordcloud={this.state.chartWordcloud} />
+          <Col span={6}>
+            <Cardprogress
+              totalImpression={this.state.totalImpression}
+              loading={this.state.loading}
+            />
           </Col>
         </Row>
         <Row style={{ marginBottom: 12 }}>
-          <Col span={24}>
-            <Timelinechart />
+          <Col span={24} style={{ marginBottom: 24 }}>
+            <Timelinechart
+              chartTimeline={this.state.chartTimeline}
+              loading={this.state.loading}
+            />
           </Col>
         </Row>
-        <Row gutter={16} style={{ marginBottom: 12 }}>
+        <Row gutter={24} style={{ marginBottom: 24 }}>
           <Col span={12}>
-            <TableUser tableUser={this.state.tableUser} />
+            <Piechart
+              chartSentiment={this.state.chartSentiment}
+              loading={this.state.loading}
+            />
           </Col>
           <Col span={12}>
-            <Barchart impression={this.state.impression} />
+            <Wordcloud
+              chartWordcloud={this.state.chartWordcloud}
+              loading={this.state.loading}
+            />
           </Col>
         </Row>
-        <Tablechart chartTabel={this.state.chartTabel} />
+        <Row gutter={24} style={{ marginBottom: 24 }}>
+          <Col span={12}>
+            <TableUser
+              tableUser={this.state.tableUser}
+              loading={this.state.loading}
+            />
+          </Col>
+          <Col span={12} style={{ marginBottom: 24 }}>
+            <Barchart
+              impression={this.state.impression}
+              loading={this.state.loading}
+            />
+            <Piechart
+              chartSentiment={this.state.chartSource}
+              loading={this.state.loading}
+            />
+          </Col>
+        </Row>
+        <Tablechart
+          chartTabel={this.state.chartTabel}
+          loading={this.state.loading}
+        />
       </div>
     );
   }
 }
 
+const mapStateToProps = state => ({
+  twitters: Object.keys(state.twitterState.projects || {}).map(key => ({
+    ...state.twitterState.twitters[key]
+  }))
+});
+
+const mapDispatchToProps = dispatch => ({
+  onSetTwitters: twitters => dispatch({ type: "TWITTER_SET", twitters })
+});
+
 const condition = authUser => !!authUser;
 
-export default withAuthorization(condition)(ProjectDetails);
+export default compose(
+  withAuthorization(condition),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )
+)(ProjectDetails);

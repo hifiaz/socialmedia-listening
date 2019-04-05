@@ -11,10 +11,10 @@ for (let i = 0; i < 20; i += 1) {
 }
 
 const Timelinechart = props => (
-  <ChartCard contentHeight={300}>
+  <ChartCard contentHeight={300} loading={props.loading}>
     <TimelineChart
-      data={chartData}
-      titleMap={{ y1: "客流量", y2: "支付笔数" }}
+      data={props.chartTimeline}
+      titleMap={{ y1: "Total Data"}}
     />
   </ChartCard>
 ) || console.log(props);

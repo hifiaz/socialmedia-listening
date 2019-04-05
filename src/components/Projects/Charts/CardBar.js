@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChartCard, MiniBar, Field } from "ant-design-pro/lib/Charts";
+import { ChartCard, MiniBar } from "ant-design-pro/lib/Charts";
 import numeral from "numeral";
 import moment from "moment";
 
@@ -16,9 +16,10 @@ for (let i = 0; i < 20; i += 1) {
 }
 const Cardbar = props => (
   <ChartCard
-    title="Total Word"
+    title="Total"
     total={numeral(props.totalWord).format("0,0")}
-    footer={<Field label="Per hari" value={numeral(12423).format("0,0")} />}
+    footer="All Unique Word"
+    loading={props.loading}
   >
     <MiniBar line height={45} data={visitData} />
   </ChartCard>

@@ -9,7 +9,7 @@ for (let i = 0; i < 50; i += 1) {
   });
 }
 const Wordcloud = props => (
-  <ChartCard title="Wordcloud">
+  <ChartCard title="Wordcloud" loading={props.loading}>
     <TagCloud data={props.chartWordcloud} height={300} />
   </ChartCard>
 );

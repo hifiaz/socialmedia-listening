@@ -11,7 +11,12 @@ for (let i = 0; i < 7; i += 1) {
 }
 
 const Barchart = props => (
-  <ChartCard title="Potential Impressions" contentHeight={320}>
+  <ChartCard
+    title="Potential Impressions"
+    contentHeight={365}
+    style={{ marginBottom: 24 }}
+    loading={props.loading}
+  >
     <Bar title="Every Post" data={props.impression} />
   </ChartCard>
 );
