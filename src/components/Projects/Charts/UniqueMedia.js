@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ChartCard, MiniBar } from "ant-design-pro/lib/Charts";
+import { ChartCard, MiniProgress } from "ant-design-pro/lib/Charts";
 import numeral from "numeral";
 import moment from "moment";
 
@@ -14,14 +14,16 @@ for (let i = 0; i < 20; i += 1) {
     y: Math.floor(Math.random() * 100) + 10
   });
 }
-const Cardbar = props => (
+const Cardprogress = props => (
   <ChartCard
+    contentHeight={46}
     title="Total"
-    total={numeral(props.totalWord).format("0,0")}
-    footer="All Unique Word"
+    total={numeral(props.totalMedia).format("0,0")}
+    footer="Potential Impression"
     loading={props.loading}
   >
-    <MiniBar line height={45} data={visitData} style={{"g2-tooltip": "display:none"}}/>
+    <MiniProgress percent={78} strokeWidth={8} target={80} />
   </ChartCard>
 );
-export default Cardbar;
+
+export default Cardprogress;

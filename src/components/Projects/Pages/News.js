@@ -11,30 +11,27 @@ import { compose } from "recompose";
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
 import Cardbar from "../Charts/CardBar";
-import Cardprogress from "../Charts/CardProgress";
+import CardMedia from "../Charts/UniqueMedia";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import Tablechart from "../Charts/Table";
-import TableUser from "../Charts/TableUser";
+import TableNews from "../Charts/TableNews";
 // import Barchart from "../Charts/Bar";
 import Timelinechart from "../Charts/Timeline";
 import LineChart from "../Charts/LineChart";
 
 require("../lib/StopWords");
 
-class ProjectDetails extends Component {
+class News extends Component {
   constructor(props) {
     super(props);
     this.state = {
       loading: true,
       chartTabel: [],
-      tableUser: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
-      totalImpression: "",
+      totalMedia: "",
       chartSentiment: [],
-      chartSource: [],
       chartTimeline: [],
       chartWordcloud: [],
       impression: [],
@@ -44,22 +41,16 @@ class ProjectDetails extends Component {
 
   componentDidMount() {
     this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.twitters().onSnapshot(snapshot => {
+    this.unsubscribe = this.props.firebase.news().onSnapshot(snapshot => {
       if (snapshot.size) {
-        // data = Object.keys(snapshot).map(key => ({
-        //   ...snapshot[key],
-        //   key: key
-        // }));
         let data = [];
         snapshot.forEach(doc => {
           data.push({ ...doc.data(), uid: doc.id });
         });
-        this.props.onSetTwitters(data);
+        this.props.onSetNews(data);
 
         data.sort(
-          (a, b) =>
-            parseFloat(b.user.followers_count) -
-            parseFloat(a.user.followers_count)
+          (a, b) => parseFloat(b.created_at) - parseFloat(a.created_at)
         );
 
         // parsing to wordcloud
@@ -67,7 +58,7 @@ class ProjectDetails extends Component {
         let isSumOfWord = {};
         let kata = [];
         data.forEach(item => {
-          isTextFull.push(item.text);
+          isTextFull.push(item.description);
         });
 
         let isAllWord = isTextFull.join("\n");
@@ -96,56 +87,30 @@ class ProjectDetails extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        // Source
-        let srcAndroid = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com/download/android" rel="nofollow">Twitter for Android</a>'
-        );
-        let srcWeb = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com" rel="nofollow">Twitter Web Client</a>'
-        );
-        let srcIphone = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com/download/iphone" rel="nofollow">Twitter for iPhone</a>'
-        );
-        let srcTweetDeck = data.filter(
-          value =>
-            value.source ===
-            '<a href="https://about.twitter.com/products/tweetdeck" rel="nofollow">TweetDeck</a>'
-        );
-        let srcOther = data.filter(
-          value =>
-            value.source !== srcAndroid || srcWeb || srcIphone || srcTweetDeck
-        );
-        const source = [
-          { x: "Android", y: srcAndroid.length },
-          { x: "Web", y: srcWeb.length },
-          { x: "Iphone", y: srcIphone.length },
-          { x: "TweetDeck", y: srcTweetDeck.length },
-          { x: "Other", y: srcOther.length }
-        ];
-
         // partsing to table user
         let isUserData = data.filter(value => {
-          return !this[value.user.id] && (this[value.user.id] = true);
+          return !this[value.author] && (this[value.author] = true);
         }, Object.create(null));
 
+        // Unique Media
+        let isMediaData = data.filter(value => {
+          return !this[value.source.name] && (this[value.source.name] = true);
+        }, Object.create(null));
+
+        console.log(isMediaData.length)
+
         // impression
-        let impression = data.map(item => ({
-          x: item.user.screen_name,
-          y: item.user.followers_count
-        }));
+        // let impression = data.map(item => ({
+        //   x: item.owner,
+        //   y: item.preview
+        // }));
 
         // Total impression
-        let totalImpression = data.map(item => item.user.followers_count);
-        let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
+        // let totalImpression = data.map(item => item.preview);
+        // let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
-        const isKeyFilter = item => moment(item.created_at).format("llll");
+        const isKeyFilter = item => moment(item.publishedAt).format("llll");
         // const isKeyFilter = item => item.created_at;
         const isGroupData = _.groupBy(data, isKeyFilter);
         var isGroup = Object.keys(isGroupData).map(key => {
@@ -158,12 +123,11 @@ class ProjectDetails extends Component {
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
-          totalImpression: isTotalImpression,
+          totalMedia: isMediaData.length,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
-          chartSource: source,
           chartWordcloud: kata,
-          impression: impression,
+          // impression: impression,
           loading: false
         });
       }
@@ -177,27 +141,27 @@ class ProjectDetails extends Component {
     return (
       <div>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardtext
               totalData={this.state.totalData}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardtrend
               totalUser={this.state.totalUser}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardbar
               totalWord={this.state.totalWord}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
-            <Cardprogress
-              totalImpression={this.state.totalImpression}
+          <Col span={6}>
+            <CardMedia
+              totalMedia={this.state.totalMedia}
               loading={this.state.loading}
             />
           </Col>
@@ -211,27 +175,13 @@ class ProjectDetails extends Component {
           </Col>
         </Row>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
+          <Col span={12}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={12}>
-            <Wordcloud
-              chartWordcloud={this.state.chartWordcloud}
-              loading={this.state.loading}
-            />
-          </Col>
-        </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
-            <TableUser
-              tableUser={this.state.tableUser}
-              loading={this.state.loading}
-            />
-          </Col>
-          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
+          <Col span={12}>
             <LineChart
               impression={this.state.impression}
               loading={this.state.loading}
@@ -240,13 +190,15 @@ class ProjectDetails extends Component {
               impression={this.state.impression}
               loading={this.state.loading}
             /> */}
-            <Piechart
-              chartSentiment={this.state.chartSource}
-              loading={this.state.loading}
-            />
           </Col>
         </Row>
-        <Tablechart
+        <Row gutter={24} style={{ marginBottom: 24 }}>
+          <Wordcloud
+            chartWordcloud={this.state.chartWordcloud}
+            loading={this.state.loading}
+          />
+        </Row>
+        <TableNews
           chartTabel={this.state.chartTabel}
           loading={this.state.loading}
         />
@@ -256,13 +208,13 @@ class ProjectDetails extends Component {
 }
 
 const mapStateToProps = state => ({
-  twitters: Object.keys(state.twitterState.projects || {}).map(key => ({
-    ...state.twitterState.twitters[key]
+  news: Object.keys(state.newsState.news || {}).map(key => ({
+    ...state.newsState.news[key]
   }))
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetTwitters: twitters => dispatch({ type: "TWITTER_SET", twitters })
+  onSetNews: news => dispatch({ type: "NEWS_SET", news })
 });
 
 const condition = authUser => !!authUser;
@@ -273,4 +225,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   )
-)(ProjectDetails);
+)(News);

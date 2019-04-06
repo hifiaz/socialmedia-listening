@@ -28,14 +28,16 @@ class AddView extends Component {
   onSubmit = event => {
     const { title, description, tags } = this.state;
     let authUser = JSON.parse(localStorage.getItem("authUser"));
+    let isUser = authUser.uid;
     let createdAt = Date.now();
     this.props.firebase
-      .project()
+      .projects()
+      .doc()
       .set({
         createdAt,
+        isUser,
         title,
         description,
-        authUser,
         tags
       })
       .then(() => {
@@ -51,17 +53,8 @@ class AddView extends Component {
     this.setState({ [event.target.name]: event.target.value });
   };
 
-  onEditProject = (message, text) => {
-    this.props.firebase.message(message.uid).set({
-      ...message,
-      text,
-      editedAt: this.props.firebase.serverValue.TIMESTAMP
-    });
-  };
-
   handleClose = removedTag => {
     const tags = this.state.tags.filter(tag => tag !== removedTag);
-    console.log(tags);
     this.setState({ tags });
   };
 
@@ -79,7 +72,6 @@ class AddView extends Component {
     if (keywords && tags.indexOf(keywords) === -1) {
       tags = [...tags, keywords];
     }
-    console.log(tags);
     this.setState({
       tags,
       inputVisible: false,
@@ -127,7 +119,7 @@ class AddView extends Component {
         <p>Setup keyword to grab data for your analytics</p>
         <Card bordered={false}>
           <Row>
-            <Col span={16}>
+            <Col xs={24} md={16}>
               <Form
                 onSubmit={this.onSubmit}
                 labelCol={{ span: 5 }}
@@ -150,15 +142,6 @@ class AddView extends Component {
                     rows={4}
                   />
                 </Form.Item>
-                {/* <Form.Item label="Keywords">
-                      <TextArea
-                        name="keywords"
-                        value={keywords}
-                        onChange={this.onChange}
-                        type="textarea"
-                        rows={4}
-                      />
-                    </Form.Item> */}
                 <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
                   <div style={{ marginBottom: 16 }}>{tagChild}</div>
                   {inputVisible && (
@@ -190,7 +173,7 @@ class AddView extends Component {
                 {error && <p>{error.message}</p>}
               </Form>
             </Col>
-            <Col span={8}>
+            <Col xs={24} md={8}>
               <p>Guide</p>
             </Col>
           </Row>

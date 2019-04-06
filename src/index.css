@@ -12,8 +12,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+#canvas_1.g2-tooltip {
+  display: none;
+}
 
-.tengah{
+#canvas_2.g2-tooltip {
+  display: none;
+}
+
+.tengah {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -21,7 +28,7 @@ code {
 }
 .logo {
   height: 32px;
-  background: rgba(255,255,255,.2);
+  background: rgba(255, 255, 255, 0.2);
   margin: 16px;
 }
 .login-form {
@@ -36,4 +43,3 @@ code {
 .login-form-button {
   width: 100%;
 }
-

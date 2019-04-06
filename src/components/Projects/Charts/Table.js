@@ -1,9 +1,8 @@
 import React from "react";
 
 import { withAuthorization } from "../../Session";
-import { Table, Card, Avatar, Skeleton } from "antd";
+import { Table, Card, Avatar, Skeleton, Tag } from "antd";
 import moment from "moment";
-moment.locale("id");
 
 const columns = [
   {
@@ -26,12 +25,29 @@ const columns = [
   {
     title: "Convo",
     dataIndex: "text",
+    width: 280,
     key: "text"
   },
   {
     title: "Sentiment",
-    dataIndex: "sentiment",
-    key: "sentiment"
+    key: "sentiment",
+    render: record => {
+      let color = null;
+      let sentimens = record.sentiment;
+      if (sentimens === "negative") {
+        color = "volcano";
+      } else if (sentimens === "positive") {
+        color = "green";
+      } else {
+        color = "geekblue";
+      }
+      return (
+        <span>
+          <Tag color={color}>{record.sentiment}</Tag>
+          <Tag>{record.sentiment_score}</Tag>
+        </span>
+      );
+    }
   },
   {
     title: "Link",

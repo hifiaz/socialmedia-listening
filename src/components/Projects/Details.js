@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Tabs } from "antd";
+import { Tabs, PageHeader } from "antd";
 import { connect } from "react-redux";
 import { compose } from "recompose";
 
@@ -7,6 +7,10 @@ import { withAuthorization } from "../Session";
 
 import Layout from "../Layout/index";
 import Twitter from "./Pages/Twitter";
+import Instagram from "./Pages/Instagram";
+import News from "./Pages/News";
+
+import * as ROUTES from "../../constants/routes";
 
 require("./lib/StopWords");
 
@@ -24,15 +28,20 @@ class ProjectDetails extends Component {
   render() {
     return (
       <Layout>
+        <PageHeader
+          onBack={() => this.props.history.push(ROUTES.HOME)}
+          title={this.state.data.title}
+          subTitle={this.state.data.description}
+        />
         <Tabs defaultActiveKey="1">
           <TabPane tab="Twitter" key="1">
             <Twitter />
           </TabPane>
           <TabPane tab="Instagram" key="2">
-            Content of Tab Pane 2
+            <Instagram />
           </TabPane>
           <TabPane tab="News" key="3">
-            Content of Tab Pane 3
+            <News />
           </TabPane>
         </Tabs>
       </Layout>

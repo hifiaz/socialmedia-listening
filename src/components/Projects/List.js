@@ -1,13 +1,19 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
+import moment from "moment";
 
 import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
-import { Table, Divider, Button, Card } from "antd";
+import {
+  Button,
+  Card,
+  notification,
+  Skeleton,
+  List,
+  Avatar
+} from "antd";
 
 import Layout from "../Layout/index";
-
-const { Column } = Table;
 
 class ListView extends Component {
   constructor(props) {
@@ -21,27 +27,38 @@ class ListView extends Component {
 
   componentDidMount() {
     this.setState({ loading: true });
+    let authUser = JSON.parse(localStorage.getItem("authUser"));
+    let isUser = authUser.uid;
+    this.unsubscribe = this.props.firebase
+      .projects()
+      .where("isUser", "==", isUser)
+      .onSnapshot(snapshot => {
+        let projects = [];
 
-    this.unsubscribe = this.props.firebase.projects().onSnapshot(snapshot => {
-      let projects = [];
+        snapshot.forEach(doc => projects.push({ ...doc.data(), uid: doc.id }));
 
-      snapshot.forEach(doc => projects.push({ ...doc.data(), uid: doc.id }));
-
-      this.setState({
-        projects,
-        loading: false
+        this.setState({
+          projects,
+          loading: false
+        });
       });
-    });
   }
 
   onRemoveProject = event => {
     let id = event.target.id;
-    let authUser = JSON.parse(localStorage.getItem("authUser"));
     console.log(id);
-    this.props.firebase
-      .project(authUser.uid)
-      .child(id)
-      .remove();
+    this.deleteData = this.props.firebase
+      .projects()
+      .doc(id)
+      .delete()
+      .then(() => {
+        notification["success"]({
+          message: "Project successfully deleted!"
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
 
   componentWillUnmount() {
@@ -55,35 +72,82 @@ class ListView extends Component {
 
         <p>All projects will display in here</p>
         <Card bordered={false}>
-          <Table dataSource={projects}>
-            <Column title="Title" dataIndex="title" key="title" />
-            <Column
-              title="Description"
-              dataIndex="description"
-              key="description"
-            />
-            <Column title="Keywords" dataIndex="keywords" key="keywords" />
-            <Column
-              title="Action"
-              key="key"
-              render={data => (
-                <span>
+          <List
+            className="demo-loadmore-list"
+            // loading={loading}
+            itemLayout="horizontal"
+            // loadMore={loadMore}
+            dataSource={projects}
+            renderItem={data => (
+              <List.Item
+                actions={[
                   <Link
                     to={{
-                      pathname: `${ROUTES.EDITPROJECT}/${data.key}`,
+                      pathname: `${ROUTES.EDITPROJECT}/${data.uid}`,
                       state: { data }
                     }}
                   >
                     <Button>Edit</Button>
-                  </Link>
-                  <Divider type="vertical" />
-                  <Button id={data.key} onClick={this.onRemoveProject}>
+                  </Link>,
+                  <Button id={data.uid} onClick={this.onRemoveProject}>
                     Delete
                   </Button>
-                </span>
-              )}
-            />
-          </Table>
+                ]}
+              >
+                <Skeleton
+                  avatar
+                  title={false}
+                  loading={this.state.loading}
+                  active
+                >
+                  <List.Item.Meta
+                    avatar={<Avatar>P</Avatar>}
+                    title={data.title}
+                    description={moment(data.createdAt).format("LLLL")}
+                  />
+                  <p>{data.description}</p>
+                </Skeleton>
+              </List.Item>
+            )}
+          />
+          {/* <Skeleton loading={this.state.loading} avatar active>
+            <Table dataSource={projects} rowKey={projects => projects.uid}>
+              <Column title="Title" dataIndex="title" key="title" />
+              <Column
+                title="Create"
+                render={record => (
+                  <p>{moment(record.createdAt).format("LLLL")}</p>
+                )}
+                key="createdAt"
+              />
+              <Column
+                title="Description"
+                dataIndex="description"
+                key="description"
+              />
+
+              <Column
+                title="Action"
+                key="key"
+                render={data => (
+                  <span>
+                    <Link
+                      to={{
+                        pathname: `${ROUTES.EDITPROJECT}/${data.uid}`,
+                        state: { data }
+                      }}
+                    >
+                      <Button>Edit</Button>
+                    </Link>
+                    <Divider type="vertical" />
+                    <Button id={data.uid} onClick={this.onRemoveProject}>
+                      Delete
+                    </Button>
+                  </span>
+                )}
+              />
+            </Table>
+          </Skeleton> */}
         </Card>
       </Layout>
     );

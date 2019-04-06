@@ -6,7 +6,17 @@ import { withFirebase } from "../Firebase";
 import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
 
-import { Form, Input, Row, Col, Button, Card } from "antd";
+import {
+  Form,
+  Input,
+  Row,
+  Col,
+  Button,
+  Card,
+  Tag,
+  Icon,
+  notification
+} from "antd";
 import Layout from "../Layout/index";
 
 const { TextArea } = Input;
@@ -17,46 +27,94 @@ class EditView extends Component {
     this.state = {
       title: props.location.state.data.title || "",
       description: props.location.state.data.description || "",
-      keywords: props.location.state.data.keywords || "",
+      tags: props.location.state.data.tags || [],
       data: [],
       error: null,
+      inputVisible: false,
       ...props.location.state
     };
   }
 
   onEditProject = event => {
-    const { title, description, keywords, data } = this.state;
-    let authUser = JSON.parse(localStorage.getItem("authUser"));
-    console.log(title);
-    console.log(data.key);
+    const { title, description, data, tags } = this.state;
+    let key = data.uid;
+    let editedAt = Date.now();
+    // console.log(key);
     this.props.firebase
-      .project(authUser.uid)
-      .child(data.key)
+      .projects()
+      .doc(key)
       .set({
         ...data,
         title,
         description,
-        keywords,
-        editedAt: this.props.firebase.serverValue.TIMESTAMP
+        tags,
+        editedAt
+      })
+      .then(() => {
+        notification["success"]({
+          message: "Project successfully Edited!"
+        });
       })
       .then(() => {
         this.props.history.push(ROUTES.LIST);
       })
-      .catch(error => {
-        this.setState({ error });
+      .catch(err => {
+        console.log(err);
       });
     event.preventDefault();
   };
   onChange = event => {
     this.setState({ [event.target.name]: event.target.value });
   };
-  componentDidMount() {
-    //   const { param } = this.props.navigation.state.params;
-    console.log("Helo" + this.state.data.title);
-    console.log(this.state.data);
-  }
+  handleClose = removedTag => {
+    const tags = this.state.tags.filter(tag => tag !== removedTag);
+    this.setState({ tags });
+  };
+
+  showInput = () => {
+    this.setState({ inputVisible: true }, () => this.input.focus());
+  };
+
+  handleInputChange = e => {
+    this.setState({ keywords: e.target.value });
+  };
+
+  handleInputConfirm = () => {
+    const { keywords } = this.state;
+    let { tags } = this.state;
+    if (keywords && tags.indexOf(keywords) === -1) {
+      tags = [...tags, keywords];
+    }
+    this.setState({
+      tags,
+      inputVisible: false,
+      keywords: ""
+    });
+  };
+
+  saveInputRef = input => (this.input = input);
+  forMap = tag => {
+    const tagElem = (
+      <Tag
+        closable
+        onClose={e => {
+          e.preventDefault();
+          this.handleClose(tag);
+        }}
+      >
+        {tag}
+      </Tag>
+    );
+    return (
+      <span key={tag} style={{ display: "inline-block" }}>
+        {tagElem}
+      </span>
+    );
+  };
   render() {
-    const { data } = this.state;
+    const { data, keywords, tags, inputVisible } = this.state;
+    // console.log(data);
+    const tagChild = tags.map(this.forMap);
     return (
       <Layout>
         <h1>Edit Project</h1>
@@ -78,21 +136,36 @@ class EditView extends Component {
                   />
                 </Form.Item>
                 <Form.Item label="Description">
-                  <Input
+                  <TextArea
                     name="description"
                     defaultValue={data.description}
                     onChange={this.onChange}
                     type="textarea"
-                  />
-                </Form.Item>
-                <Form.Item label="Keywords">
-                  <TextArea
-                    name="keywords"
-                    defaultValue={data.keywords}
-                    onChange={this.onChange}
-                    type="textarea"
                     rows={4}
                   />
+                </Form.Item>
+                <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
+                  <div style={{ marginBottom: 16 }}>{tagChild}</div>
+                  {inputVisible && (
+                    <Input
+                      ref={this.saveInputRef}
+                      type="text"
+                      size="small"
+                      style={{ width: 78 }}
+                      value={keywords}
+                      onChange={this.handleInputChange}
+                      onBlur={this.handleInputConfirm}
+                      onPressEnter={this.handleInputConfirm}
+                    />
+                  )}
+                  {!inputVisible && (
+                    <Tag
+                      onClick={this.showInput}
+                      style={{ background: "#fff", borderStyle: "dashed" }}
+                    >
+                      <Icon type="plus" /> New Keyword
+                    </Tag>
+                  )}
                 </Form.Item>
                 <Form.Item wrapperCol={{ span: 12, offset: 5 }}>
                   <Button type="primary" htmlType="submit">

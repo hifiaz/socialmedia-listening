@@ -14,27 +14,24 @@ import Cardbar from "../Charts/CardBar";
 import Cardprogress from "../Charts/CardProgress";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import Tablechart from "../Charts/Table";
-import TableUser from "../Charts/TableUser";
+import TableIg from "../Charts/TableIg";
 // import Barchart from "../Charts/Bar";
 import Timelinechart from "../Charts/Timeline";
 import LineChart from "../Charts/LineChart";
 
 require("../lib/StopWords");
 
-class ProjectDetails extends Component {
+class Instagram extends Component {
   constructor(props) {
     super(props);
     this.state = {
       loading: true,
       chartTabel: [],
-      tableUser: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
       totalImpression: "",
       chartSentiment: [],
-      chartSource: [],
       chartTimeline: [],
       chartWordcloud: [],
       impression: [],
@@ -44,30 +41,26 @@ class ProjectDetails extends Component {
 
   componentDidMount() {
     this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.twitters().onSnapshot(snapshot => {
+    this.unsubscribe = this.props.firebase.instagrams().onSnapshot(snapshot => {
       if (snapshot.size) {
-        // data = Object.keys(snapshot).map(key => ({
-        //   ...snapshot[key],
-        //   key: key
-        // }));
         let data = [];
         snapshot.forEach(doc => {
           data.push({ ...doc.data(), uid: doc.id });
         });
-        this.props.onSetTwitters(data);
+        this.props.onSetInstagrams(data);
 
         data.sort(
-          (a, b) =>
-            parseFloat(b.user.followers_count) -
-            parseFloat(a.user.followers_count)
+          (a, b) => parseFloat(b.created_at) - parseFloat(a.created_at)
         );
+
+        // console.log(data);
 
         // parsing to wordcloud
         let isTextFull = [];
         let isSumOfWord = {};
         let kata = [];
         data.forEach(item => {
-          isTextFull.push(item.text);
+          isTextFull.push(item.caption);
         });
 
         let isAllWord = isTextFull.join("\n");
@@ -96,52 +89,19 @@ class ProjectDetails extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        // Source
-        let srcAndroid = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com/download/android" rel="nofollow">Twitter for Android</a>'
-        );
-        let srcWeb = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com" rel="nofollow">Twitter Web Client</a>'
-        );
-        let srcIphone = data.filter(
-          value =>
-            value.source ===
-            '<a href="http://twitter.com/download/iphone" rel="nofollow">Twitter for iPhone</a>'
-        );
-        let srcTweetDeck = data.filter(
-          value =>
-            value.source ===
-            '<a href="https://about.twitter.com/products/tweetdeck" rel="nofollow">TweetDeck</a>'
-        );
-        let srcOther = data.filter(
-          value =>
-            value.source !== srcAndroid || srcWeb || srcIphone || srcTweetDeck
-        );
-        const source = [
-          { x: "Android", y: srcAndroid.length },
-          { x: "Web", y: srcWeb.length },
-          { x: "Iphone", y: srcIphone.length },
-          { x: "TweetDeck", y: srcTweetDeck.length },
-          { x: "Other", y: srcOther.length }
-        ];
-
         // partsing to table user
         let isUserData = data.filter(value => {
-          return !this[value.user.id] && (this[value.user.id] = true);
+          return !this[value.owner] && (this[value.owner] = true);
         }, Object.create(null));
 
         // impression
         let impression = data.map(item => ({
-          x: item.user.screen_name,
-          y: item.user.followers_count
+          x: item.owner,
+          y: item.preview
         }));
 
         // Total impression
-        let totalImpression = data.map(item => item.user.followers_count);
+        let totalImpression = data.map(item => item.preview);
         let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
@@ -161,7 +121,6 @@ class ProjectDetails extends Component {
           totalImpression: isTotalImpression,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
-          chartSource: source,
           chartWordcloud: kata,
           impression: impression,
           loading: false
@@ -177,25 +136,25 @@ class ProjectDetails extends Component {
     return (
       <div>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardtext
               totalData={this.state.totalData}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardtrend
               totalUser={this.state.totalUser}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardbar
               totalWord={this.state.totalWord}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col span={6}>
             <Cardprogress
               totalImpression={this.state.totalImpression}
               loading={this.state.loading}
@@ -211,27 +170,13 @@ class ProjectDetails extends Component {
           </Col>
         </Row>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
+          <Col span={12}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={12}>
-            <Wordcloud
-              chartWordcloud={this.state.chartWordcloud}
-              loading={this.state.loading}
-            />
-          </Col>
-        </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
-            <TableUser
-              tableUser={this.state.tableUser}
-              loading={this.state.loading}
-            />
-          </Col>
-          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
+          <Col span={12}>
             <LineChart
               impression={this.state.impression}
               loading={this.state.loading}
@@ -240,13 +185,15 @@ class ProjectDetails extends Component {
               impression={this.state.impression}
               loading={this.state.loading}
             /> */}
-            <Piechart
-              chartSentiment={this.state.chartSource}
-              loading={this.state.loading}
-            />
           </Col>
         </Row>
-        <Tablechart
+        <Row gutter={24} style={{ marginBottom: 24 }}>
+          <Wordcloud
+            chartWordcloud={this.state.chartWordcloud}
+            loading={this.state.loading}
+          />
+        </Row>
+        <TableIg
           chartTabel={this.state.chartTabel}
           loading={this.state.loading}
         />
@@ -256,13 +203,13 @@ class ProjectDetails extends Component {
 }
 
 const mapStateToProps = state => ({
-  twitters: Object.keys(state.twitterState.projects || {}).map(key => ({
-    ...state.twitterState.twitters[key]
+  instagrams: Object.keys(state.instagramState.projects || {}).map(key => ({
+    ...state.instagramState.instagrams[key]
   }))
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetTwitters: twitters => dispatch({ type: "TWITTER_SET", twitters })
+  onSetInstagrams: instagrams => dispatch({ type: "INSTAGRAM_SET", instagrams })
 });
 
 const condition = authUser => !!authUser;
@@ -273,4 +220,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   )
-)(ProjectDetails);
+)(Instagram);

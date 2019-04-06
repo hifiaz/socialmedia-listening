@@ -113,11 +113,17 @@ class Firebase {
 
   twitters = () => this.db.collection("twitter");
 
-  // *** Data API ***
+  // *** Instagram API ***
 
-  data = uid => this.db.doc(`datas/${uid}`);
+  instagram = uid => this.db.doc(`instagram/${uid}`);
 
-  datas = () => this.db.collection("datas");
+  instagrams = () => this.db.collection("instagram");
+
+  // *** News API ***
+
+  new = uid => this.db.doc(`new/${uid}`);
+
+  news = () => this.db.collection("news");
 }
 
 export default Firebase;
