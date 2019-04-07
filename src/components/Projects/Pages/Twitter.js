@@ -225,7 +225,7 @@ class ProjectDetails extends Component {
           </Col>
         </Row>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
+          <Col xs={24} md={24} lg={12}>
             <TableUser
               tableUser={this.state.tableUser}
               loading={this.state.loading}

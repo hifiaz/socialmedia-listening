@@ -6,6 +6,7 @@ import projectReducer from "./project";
 import twitterReducer from "./twitter";
 import instagramReducer from "./instagram";
 import newsReducer from "./news";
+import youtubeReducer from "./youtube";
 
 const rootReducer = combineReducers({
   sessionState: sessionReducer,
@@ -14,7 +15,8 @@ const rootReducer = combineReducers({
   projectState: projectReducer,
   twitterState: twitterReducer,
   instagramState: instagramReducer,
-  newsState: newsReducer
+  newsState: newsReducer,
+  youtubeState: youtubeReducer
 });
 
 export default rootReducer;

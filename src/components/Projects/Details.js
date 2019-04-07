@@ -9,6 +9,7 @@ import Layout from "../Layout/index";
 import Twitter from "./Pages/Twitter";
 import Instagram from "./Pages/Instagram";
 import News from "./Pages/News";
+import Youtube from "./Pages/Youtube";
 
 import * as ROUTES from "../../constants/routes";
 
@@ -42,6 +43,9 @@ class ProjectDetails extends Component {
           </TabPane>
           <TabPane tab="News" key="3">
             <News />
+          </TabPane>
+          <TabPane tab="Youtube" key="4">
+            <Youtube />
           </TabPane>
         </Tabs>
       </Layout>

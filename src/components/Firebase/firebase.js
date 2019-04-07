@@ -124,6 +124,12 @@ class Firebase {
   new = uid => this.db.doc(`new/${uid}`);
 
   news = () => this.db.collection("news");
+
+  // *** Youtube API ***
+
+  youtube = uid => this.db.doc(`youtube/${uid}`);
+
+  youtubes = () => this.db.collection("youtube");
 }
 
 export default Firebase;

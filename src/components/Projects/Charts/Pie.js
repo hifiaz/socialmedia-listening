@@ -6,6 +6,7 @@ const Piechart = props => (
     <Pie
       animate
       hasLegend
+      height={294}
       subTitle="Total"
       total={() => (
         <span

@@ -11,31 +11,32 @@ import { compose } from "recompose";
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
 import Cardbar from "../Charts/CardBar";
-import CardMedia from "../Charts/UniqueMedia";
+import Cardprogress from "../Charts/CardProgress";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import TableNews from "../Charts/TableNews";
-import TableMedia from "../Charts/TableNMedia";
-import TableUser from "../Charts/TableNUser";
-import Timelinechart from "../Charts/Timeline";
+import Tablechart from "../Charts/TableYt";
+import TableUser from "../Charts/TableYtUser";
+// import Barchart from "../Charts/Bar";
+// import Timelinechart from "../Charts/Timeline";
+import LineChart from "../Charts/LineChart";
 
 require("../lib/StopWords");
 
-class News extends Component {
+class YoutubePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
       loading: true,
       chartTabel: [],
+      // tableUser: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
-      totalMedia: "",
+      totalImpression: "",
       chartSentiment: [],
+      // chartSource: [],
       chartTimeline: [],
       chartWordcloud: [],
-      tableMedia: [],
-      TableUser: [],
       impression: [],
       ...props.location.state
     };
@@ -43,16 +44,18 @@ class News extends Component {
 
   componentDidMount() {
     this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.news().onSnapshot(snapshot => {
+    this.unsubscribe = this.props.firebase.youtubes().onSnapshot(snapshot => {
       if (snapshot.size) {
         let data = [];
         snapshot.forEach(doc => {
           data.push({ ...doc.data(), uid: doc.id });
         });
-        this.props.onSetNews(data);
+        this.props.onSetTwitters(data);
 
         data.sort(
-          (a, b) => parseFloat(b.created_at) - parseFloat(a.created_at)
+          (a, b) =>
+            parseFloat(b.views) -
+            parseFloat(a.views)
         );
 
         // parsing to wordcloud
@@ -89,30 +92,23 @@ class News extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        // Uniq User / Author
+        // // partsing to table user
         let isUserData = data.filter(value => {
-          return !this[value.author] && (this[value.author] = true);
+          return !this[value.channel] && (this[value.channel] = true);
         }, Object.create(null));
-
-        // Unique Media
-        let isMediaData = data.filter(value => {
-          return !this[value.source.name] && (this[value.source.name] = true);
-        }, Object.create(null));
-
-        console.log(isMediaData);
 
         // impression
-        // let impression = data.map(item => ({
-        //   x: item.owner,
-        //   y: item.preview
-        // }));
+        let impression = data.map(item => ({
+          x: item.channel,
+          y: item.views
+        }));
 
         // Total impression
-        // let totalImpression = data.map(item => item.preview);
-        // let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
+        let totalImpression = data.map(item => item.views);
+        let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
-        const isKeyFilter = item => moment(item.publishedAt).format("llll");
+        const isKeyFilter = item => moment(item.created_at).format("llll");
         // const isKeyFilter = item => item.created_at;
         const isGroupData = _.groupBy(data, isKeyFilter);
         var isGroup = Object.keys(isGroupData).map(key => {
@@ -121,17 +117,16 @@ class News extends Component {
 
         this.setState({
           chartTabel: data,
-          // tableUser: isUserData,
+          tableUser: isUserData,
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
-          totalMedia: isMediaData.length,
-          tableMedia: isMediaData,
-          tableUser: isUserData,
+          totalImpression: isTotalImpression,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
+          // chartSource: source,
           chartWordcloud: kata,
-          // impression: impression,
+          impression: impression,
           loading: false
         });
       }
@@ -144,70 +139,77 @@ class News extends Component {
   render() {
     return (
       <div>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={6}>
+        <Row gutter={24}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardtext
               totalData={this.state.totalData}
               loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardtrend
               totalUser={this.state.totalUser}
               loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardbar
               totalWord={this.state.totalWord}
               loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
-            <CardMedia
-              totalMedia={this.state.totalMedia}
+          <Col xs={24} md={6}>
+            <Cardprogress
+              totalImpression={this.state.totalImpression}
               loading={this.state.loading}
             />
           </Col>
         </Row>
-        <Row style={{ marginBottom: 12 }}>
+        {/* <Row>
           <Col span={24} style={{ marginBottom: 24 }}>
             <Timelinechart
               chartTimeline={this.state.chartTimeline}
               loading={this.state.loading}
             />
           </Col>
-        </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        </Row> */}
+        <Row gutter={24}>
+          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
               loading={this.state.loading}
             />
           </Col>
-          <Col span={12}>
+          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
             <Wordcloud
               chartWordcloud={this.state.chartWordcloud}
               loading={this.state.loading}
             />
           </Col>
         </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col md={12}>
-            <TableMedia
-              tableMedia={this.state.tableMedia}
-              loading={this.state.loading}
-            />
-          </Col>
-          <Col md={12}>
+        <Row gutter={24}>
+          <Col xs={24} md={24} lg={12} style={{ marginBottom: 24 }}>
             <TableUser
               tableUser={this.state.tableUser}
               loading={this.state.loading}
             />
           </Col>
+          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
+            <LineChart
+              impression={this.state.impression}
+              loading={this.state.loading}
+            />
+            {/* <Barchart
+              impression={this.state.impression}
+              loading={this.state.loading}
+            /> */}
+            {/* <Piechart
+              chartSentiment={this.state.chartSource}
+              loading={this.state.loading}
+            /> */}
+          </Col>
         </Row>
-        >
-        <TableNews
+        <Tablechart
           chartTabel={this.state.chartTabel}
           loading={this.state.loading}
         />
@@ -217,13 +219,13 @@ class News extends Component {
 }
 
 const mapStateToProps = state => ({
-  news: Object.keys(state.newsState.news || {}).map(key => ({
-    ...state.newsState.news[key]
+  twitters: Object.keys(state.twitterState.projects || {}).map(key => ({
+    ...state.twitterState.twitters[key]
   }))
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetNews: news => dispatch({ type: "NEWS_SET", news })
+  onSetTwitters: twitters => dispatch({ type: "TWITTER_SET", twitters })
 });
 
 const condition = authUser => !!authUser;
@@ -234,4 +236,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   )
-)(News);
+)(YoutubePage);
