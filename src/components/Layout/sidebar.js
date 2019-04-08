@@ -58,9 +58,15 @@ const Sidebar = ({ authUser }) =>
             </span>
           }
         >
-          <Menu.Item key="5">Twitter</Menu.Item>
-          <Menu.Item key="6">Instagram</Menu.Item>
-          <Menu.Item key="7">Facebook</Menu.Item>
+          <Menu.Item key="5">
+            <Link to={ROUTES.TWITTER}>Twitter</Link>
+          </Menu.Item>
+          <Menu.Item key="6">
+            <Link to={ROUTES.INSTAGRAM}>Instagram</Link>
+          </Menu.Item>
+          <Menu.Item key="7">
+            <Link to={ROUTES.YOUTUBE}>Youtube</Link>
+          </Menu.Item>
           <Menu.Item key="8">
             <Link to={ROUTES.NEWS}>News</Link>
           </Menu.Item>

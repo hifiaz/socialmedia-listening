@@ -14,7 +14,7 @@ import Cardbar from "../Charts/CardBar";
 import Cardprogress from "../Charts/CardProgress";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import TableIg from "../Charts/TableIg";
+import TableIg from "../Charts/Instagram/TableIg";
 // import Barchart from "../Charts/Bar";
 import Timelinechart from "../Charts/Timeline";
 import LineChart from "../Charts/LineChart";

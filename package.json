@@ -45,6 +45,7 @@
     "react-app-polyfill": "^0.2.2",
     "react-dev-utils": "^8.0.0",
     "react-dom": "^16.8.5",
+    "react-helmet": "^5.2.0",
     "react-redux": "^6.0.1",
     "react-router-dom": "^5.0.0",
     "recompose": "^0.30.0",

@@ -11,12 +11,12 @@ import { compose } from "recompose";
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
 import Cardbar from "../Charts/CardBar";
-import CardMedia from "../Charts/UniqueMedia";
+import CardMedia from "../Charts/News/UniqueMedia";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import TableNews from "../Charts/TableNews";
-import TableMedia from "../Charts/TableNMedia";
-import TableUser from "../Charts/TableNUser";
+import TableNews from "../Charts/News/TableNews";
+import TableMedia from "../Charts/News/TableNMedia";
+import TableUser from "../Charts/News/TableNUser";
 import Timelinechart from "../Charts/Timeline";
 
 require("../lib/StopWords");

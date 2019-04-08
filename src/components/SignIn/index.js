@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
 import { compose } from "recompose";
-import { Form, Icon, Input, Button } from "antd";
+import { Form, Icon, Input, Button, Alert } from "antd";
 
 import { SignUpLink } from "../SignUp";
 import { PasswordForgetLink } from "../PasswordForget";
@@ -26,13 +26,13 @@ const INITIAL_STATE = {
 class SignInFormBase extends Component {
   constructor(props) {
     super(props);
-    
+
     this.state = { ...INITIAL_STATE };
   }
 
   onSubmit = event => {
     const { email, password } = this.state;
-    
+
     this.props.firebase
       .doSignInWithEmailAndPassword(email, password)
       .then(() => {
@@ -77,11 +77,16 @@ class SignInFormBase extends Component {
             prefix={<Icon type="lock" style={{ color: "rgba(0,0,0,.25)" }} />}
           />
         </Form.Item>
-        <Button disabled={isInvalid} type="primary" htmlType="submit" className="login-form-button">
+        <Button
+          disabled={isInvalid}
+          type="primary"
+          htmlType="submit"
+          className="login-form-button"
+        >
           Sign In
         </Button>
 
-        {error && <p>{error.message}</p>}
+        {error && <Alert message={error.message} type="error" />}
       </Form>
     );
   }

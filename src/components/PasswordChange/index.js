@@ -1,11 +1,12 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 
-import { withFirebase } from '../Firebase';
+import { withFirebase } from "../Firebase";
+import { Button, Input, Form, Alert } from "antd";
 
 const INITIAL_STATE = {
-  passwordOne: '',
-  passwordTwo: '',
-  error: null,
+  passwordOne: "",
+  passwordTwo: "",
+  error: null
 };
 
 class PasswordChangeForm extends Component {
@@ -37,31 +38,34 @@ class PasswordChangeForm extends Component {
   render() {
     const { passwordOne, passwordTwo, error } = this.state;
 
-    const isInvalid =
-      passwordOne !== passwordTwo || passwordOne === '';
+    const isInvalid = passwordOne !== passwordTwo || passwordOne === "";
 
     return (
-      <form onSubmit={this.onSubmit}>
-        <input
-          name="passwordOne"
-          value={passwordOne}
-          onChange={this.onChange}
-          type="password"
-          placeholder="New Password"
-        />
-        <input
-          name="passwordTwo"
-          value={passwordTwo}
-          onChange={this.onChange}
-          type="password"
-          placeholder="Confirm New Password"
-        />
-        <button disabled={isInvalid} type="submit">
+      <Form onSubmit={this.onSubmit} className="signup-form">
+        <Form.Item>
+          <Input
+            name="passwordOne"
+            value={passwordOne}
+            onChange={this.onChange}
+            type="password"
+            placeholder="New Password"
+          />
+        </Form.Item>
+        <Form.Item>
+          <Input
+            name="passwordTwo"
+            value={passwordTwo}
+            onChange={this.onChange}
+            type="password"
+            placeholder="Confirm New Password"
+          />
+        </Form.Item>
+        <Button disabled={isInvalid} type="submit">
           Reset My Password
-        </button>
+        </Button>
 
-        {error && <p>{error.message}</p>}
-      </form>
+        {error && <Alert message={error.message} type="error" />}
+      </Form>
     );
   }
 }

@@ -1,15 +1,15 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { compose } from "recompose";
+import { Button, Row, Col, Card, Form, Input, Upload, Icon } from "antd";
 import Layout from "../Layout/index";
 
-import {
-  withAuthorization,
-  withEmailVerification
-} from "../Session";
+import { withAuthorization, withEmailVerification } from "../Session";
 import { withFirebase } from "../Firebase";
 import { PasswordForgetForm } from "../PasswordForget";
 import PasswordChangeForm from "../PasswordChange";
+const { Meta } = Card;
+const ButtonGroup = Button.Group;
 
 const SIGN_IN_METHODS = [
   {
@@ -30,14 +30,39 @@ const SIGN_IN_METHODS = [
   }
 ];
 
-const AccountPage = ({ authUser }) => (
-  <Layout>
-    <h1>Account: {authUser.email}</h1>
-    <PasswordForgetForm />
-    <PasswordChangeForm />
-    <LoginManagement authUser={authUser} />
-  </Layout>
-);
+const AccountPage = ({ authUser }) =>
+  console.log(authUser) || (
+    <Layout>
+      <Card>
+        <Row>
+          <Col span={8}>
+            <Card
+              hoverable
+              style={{ width: 240 }}
+              cover={
+                <img
+                  alt="example"
+                  src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+                />
+              }
+            >
+              <Meta title={authUser.username} description={authUser.email} />
+            </Card>
+          </Col>
+          <Col span={16}>
+            <Upload>
+              <Button style={{ marginBottom: "1rem" }}>
+                <Icon type="upload" /> Click to Upload
+              </Button>
+            </Upload>
+            <PasswordForgetForm />
+            <PasswordChangeForm />
+            <LoginManagement authUser={authUser} />
+          </Col>
+        </Row>
+      </Card>
+    </Layout>
+  );
 
 class LoginManagementBase extends Component {
   constructor(props) {
@@ -93,35 +118,32 @@ class LoginManagementBase extends Component {
 
     return (
       <div>
-        Sign In Methods:
-        <ul>
-          {SIGN_IN_METHODS.map(signInMethod => {
-            const onlyOneLeft = activeSignInMethods.length === 1;
-            const isEnabled = activeSignInMethods.includes(signInMethod.id);
-
-            return (
-              <li key={signInMethod.id}>
-                {signInMethod.id === "password" ? (
-                  <DefaultLoginToggle
-                    onlyOneLeft={onlyOneLeft}
-                    isEnabled={isEnabled}
-                    signInMethod={signInMethod}
-                    onLink={this.onDefaultLoginLink}
-                    onUnlink={this.onUnlink}
-                  />
-                ) : (
-                  <SocialLoginToggle
-                    onlyOneLeft={onlyOneLeft}
-                    isEnabled={isEnabled}
-                    signInMethod={signInMethod}
-                    onLink={this.onSocialLoginLink}
-                    onUnlink={this.onUnlink}
-                  />
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <h1 style={{ marginTop: "1em" }}>Sign In Methods:</h1>
+        {SIGN_IN_METHODS.map(signInMethod => {
+          const onlyOneLeft = activeSignInMethods.length === 1;
+          const isEnabled = activeSignInMethods.includes(signInMethod.id);
+          return (
+            <ButtonGroup key={signInMethod.id}>
+              {signInMethod.id === "password" ? (
+                <DefaultLoginToggle
+                  onlyOneLeft={onlyOneLeft}
+                  isEnabled={isEnabled}
+                  signInMethod={signInMethod}
+                  onLink={this.onDefaultLoginLink}
+                  onUnlink={this.onUnlink}
+                />
+              ) : (
+                <SocialLoginToggle
+                  onlyOneLeft={onlyOneLeft}
+                  isEnabled={isEnabled}
+                  signInMethod={signInMethod}
+                  onLink={this.onSocialLoginLink}
+                  onUnlink={this.onUnlink}
+                />
+              )}
+            </ButtonGroup>
+          );
+        })}
         {error && error.message}
       </div>
     );
@@ -136,17 +158,22 @@ const SocialLoginToggle = ({
   onUnlink
 }) =>
   isEnabled ? (
-    <button
+    <Button
       type="button"
       onClick={() => onUnlink(signInMethod.id)}
       disabled={onlyOneLeft}
+      style={{ marginRight: "1rem" }}
     >
       Deactivate {signInMethod.id}
-    </button>
+    </Button>
   ) : (
-    <button type="button" onClick={() => onLink(signInMethod.provider)}>
-      Link {signInMethod.id}
-    </button>
+    <Button
+      type="button"
+      onClick={() => onLink(signInMethod.provider)}
+      style={{ marginRight: "1rem" }}
+    >
+      {signInMethod.id}
+    </Button>
   );
 
 class DefaultLoginToggle extends Component {
@@ -175,23 +202,24 @@ class DefaultLoginToggle extends Component {
     const isInvalid = passwordOne !== passwordTwo || passwordOne === "";
 
     return isEnabled ? (
-      <button
+      <Button
         type="button"
         onClick={() => onUnlink(signInMethod.id)}
         disabled={onlyOneLeft}
+        style={{ marginRight: "1rem" }}
       >
         Deactivate {signInMethod.id}
-      </button>
+      </Button>
     ) : (
-      <form onSubmit={this.onSubmit}>
-        <input
+      <Form onSubmit={this.onSubmit}>
+        <Input
           name="passwordOne"
           value={passwordOne}
           onChange={this.onChange}
           type="password"
           placeholder="New Password"
         />
-        <input
+        <Input
           name="passwordTwo"
           value={passwordTwo}
           onChange={this.onChange}
@@ -199,10 +227,14 @@ class DefaultLoginToggle extends Component {
           placeholder="Confirm New Password"
         />
 
-        <button disabled={isInvalid} type="submit">
-          Link {signInMethod.id}
-        </button>
-      </form>
+        <Button
+          disabled={isInvalid}
+          type="submit"
+          style={{ marginRight: "1rem" }}
+        >
+          {signInMethod.id}
+        </Button>
+      </Form>
     );
   }
 }

@@ -1,9 +1,16 @@
 import React from "react";
 
-import { withAuthorization } from "../../Session";
-import { Card, Tag, List } from "antd";
+import { withAuthorization } from "../../../Session";
+import { Card, Tag, List, Icon } from "antd";
 
-const TableNews = props => (
+const IconText = ({ type, text }) => (
+  <span>
+    <Icon type={type} style={{ marginRight: 8 }} />
+    {text}
+  </span>
+);
+
+const TableYt = props => (
   <Card>
     <List
       itemLayout="vertical"
@@ -17,23 +24,24 @@ const TableNews = props => (
       dataSource={props.chartTabel}
       footer={
         <div>
-          <b>News</b>
+          <b>Youtube</b>
         </div>
       }
       renderItem={item => (
         <List.Item
-          key={item.title}
+          key={item.channel}
           actions={[
             <Tag>{item.sentiment}</Tag>,
             <Tag>{item.sentiment_score}</Tag>,
-            <p>{item.source.name}</p>,
-            <p>{item.author}</p>
+            <IconText type="calendar" text={item.upload_date} />,
+            <IconText type="clock-circle" text={item.duration} />,
+            <IconText type="eye" text={item.views} />
           ]}
-          extra={<img width={272} alt={item.title} src={item.urlToImage} />}
+          extra={<img width={272} alt={item.title} src={item.thumbnail} />}
         >
           <List.Item.Meta
             title={
-              <a href={item.url} target="_blank" rel="noopener noreferrer">
+              <a href={item.link} target="_blank" rel="noopener noreferrer">
                 {item.title}
               </a>
             }
@@ -48,4 +56,4 @@ const TableNews = props => (
 
 const condition = authUser => !!authUser;
 
-export default withAuthorization(condition)(TableNews);
+export default withAuthorization(condition)(TableYt);

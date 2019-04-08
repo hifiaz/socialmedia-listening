@@ -11,3 +11,6 @@ export const ADDPROJECT = '/add-project';
 export const EDITPROJECT = '/edit-project';
 export const DETAILS_PROJECT = '/detail-project';
 export const NEWS = '/news';
+export const TWITTER = '/twitter';
+export const INSTAGRAM = '/instagram';
+export const YOUTUBE = '/youtube';

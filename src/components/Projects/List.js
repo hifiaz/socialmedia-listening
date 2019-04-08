@@ -103,9 +103,9 @@ class ListView extends Component {
                   <List.Item.Meta
                     avatar={<Avatar>P</Avatar>}
                     title={data.title}
-                    description={moment(data.createdAt).format("LLLL")}
+                    description={data.description}
                   />
-                  <p>{data.description}</p>
+                  <p>{moment(data.createdAt).format("ll")}</p>
                 </Skeleton>
               </List.Item>
             )}

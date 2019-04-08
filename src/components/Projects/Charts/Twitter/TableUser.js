@@ -1,6 +1,6 @@
 import React from "react";
 
-import { withAuthorization } from "../../Session";
+import { withAuthorization } from "../../../Session";
 import { Table, Card, Avatar, Skeleton } from "antd";
 
 const columns = [

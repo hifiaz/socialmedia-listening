@@ -1,6 +1,6 @@
 import React from "react";
 
-import { withAuthorization } from "../../Session";
+import { withAuthorization } from "../../../Session";
 import { Table, Card, Avatar, Skeleton, Tag } from "antd";
 import moment from "moment";
 

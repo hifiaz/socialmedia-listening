@@ -121,7 +121,7 @@ class EditView extends Component {
         <p>Setup keyword to grab data for your analytics</p>
         <Card bordered={false}>
           <Row>
-            <Col span={16}>
+            <Col xs={24} md={16}>
               <Form
                 onSubmit={this.onEditProject}
                 labelCol={{ span: 5 }}
@@ -173,9 +173,6 @@ class EditView extends Component {
                   </Button>
                 </Form.Item>
               </Form>
-            </Col>
-            <Col span={8}>
-              <p>Guide</p>
             </Col>
           </Row>
         </Card>

@@ -119,6 +119,27 @@ class AddView extends Component {
         <p>Setup keyword to grab data for your analytics</p>
         <Card bordered={false}>
           <Row>
+            <Col xs={24} md={8}>
+              <p>Guide</p>
+              <p>
+                <i>Title:</i> Isikan judul secara singkat dan mempresentasikan
+                project
+              </p>
+              <p>
+                <i>Description:</i> Deskripsikan project ini dengan jelas,
+                seperti apa yang akan di analisa, goal seperti apa yang di
+                harapkan, hal ini bertujuan untuk memberitahu sistem untuk
+                menarik data secara efektif
+              </p>
+              <p>
+                <i>New Keyword:</i> Dalam menulis keyword pastikan anda tau goal
+                apa yang akan di capai, jika bersifat general gunakan keyword
+                yang banyak di gunakan orang, contoh ketika saya ingin
+                memonitoring bank, cukup gunakan keyword "Bank", jika ingin
+                spesifik pada bank tertentu bisa gunakan contoh keyword "Bank
+                Mandiri"
+              </p>
+            </Col>
             <Col xs={24} md={16}>
               <Form
                 onSubmit={this.onSubmit}
@@ -172,9 +193,6 @@ class AddView extends Component {
                 </Form.Item>
                 {error && <p>{error.message}</p>}
               </Form>
-            </Col>
-            <Col xs={24} md={8}>
-              <p>Guide</p>
             </Col>
           </Row>
         </Card>

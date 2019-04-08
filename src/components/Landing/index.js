@@ -14,7 +14,7 @@ const Landing = () => (
       <br />
       Duende
       <br />
-      <Link to={ROUTES.SIGN_IN}>Login</Link>
+      <Link to={ROUTES.SIGN_IN}>Klik disini</Link>
     </Text>
   </div>
 );
