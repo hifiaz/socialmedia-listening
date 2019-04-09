@@ -1,3 +1,8 @@
+[build]
+base = "bismillah-dasboard/"
+publish = "bismillah-dasboard/build/"
+command = "npm run build"
+
 [[redirects]]
 from = "/*"
 to = "/index.html"
