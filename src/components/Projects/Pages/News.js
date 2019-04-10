@@ -42,8 +42,6 @@ class News extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    this.setState({ loading: true });
-
     this.client = algoliasearch(
       process.env.REACT_APP_ALGOLIA_ID,
       process.env.REACT_APP_ALGOLIA_KEY
@@ -141,6 +139,7 @@ class News extends Component {
         ];
 
         this.setState({
+          loading: false,
           totalData,
           totalUser: isUserData.length,
           totalWord: kata.length,
@@ -165,25 +164,25 @@ class News extends Component {
           <Col span={6} style={{ marginBottom: 24 }}>
             <Cardtext
               totalData={this.state.totalData}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
           <Col span={6} style={{ marginBottom: 24 }}>
             <Cardtrend
               totalUser={this.state.totalUser}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
           <Col span={6} style={{ marginBottom: 24 }}>
             <Cardbar
               totalWord={this.state.totalWord}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
           <Col span={6} style={{ marginBottom: 24 }}>
             <CardMedia
               totalMedia={this.state.totalMedia}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
         </Row>
@@ -199,13 +198,13 @@ class News extends Component {
           <Col span={12} style={{ marginBottom: 24 }}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
           <Col span={12} style={{ marginBottom: 24 }}>
             <Wordcloud
               chartWordcloud={this.state.chartWordcloud}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
         </Row>
@@ -213,19 +212,19 @@ class News extends Component {
           <Col md={12} style={{ marginBottom: 24 }}>
             <TableMedia
               tableMedia={this.state.tableMedia}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
           <Col md={12} style={{ marginBottom: 24 }}>
             <TableUser
               tableUser={this.state.tableUser}
-              // loading={this.state.loading}
+              loading={this.state.loading}
             />
           </Col>
         </Row>
         <TableNews
           chartTabel={this.state.chartTabel}
-          // loading={this.state.loading}
+          loading={this.state.loading}
         />
       </div>
     );

@@ -84,7 +84,7 @@ const TableIg = props => (
   <Card>
     <Skeleton loading={props.loading} avatar active>
       <Table
-        rowKey={record => record.id}
+        rowKey={record => record.objectID}
         columns={columns}
         dataSource={props.chartTabel}
         onChange={onChange}
