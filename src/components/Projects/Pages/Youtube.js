@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 import { Row, Col } from "antd";
 import moment from "moment";
-import _ from "lodash";
 
 import { withAuthorization } from "../../Session";
 
 import { connect } from "react-redux";
 import { compose } from "recompose";
+import algoliasearch from "algoliasearch";
 
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
@@ -27,14 +27,12 @@ class YoutubePage extends Component {
     super(props);
     this.state = {
       loading: true,
-      chartTabel: [],
-      // tableUser: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
       totalImpression: "",
+      chartTabel: [],
       chartSentiment: [],
-      // chartSource: [],
       chartTimeline: [],
       chartWordcloud: [],
       impression: [],
@@ -43,20 +41,19 @@ class YoutubePage extends Component {
   }
 
   componentDidMount() {
-    this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.youtubes().onSnapshot(snapshot => {
-      if (snapshot.size) {
-        let data = [];
-        snapshot.forEach(doc => {
-          data.push({ ...doc.data(), uid: doc.id });
-        });
-        this.props.onSetTwitters(data);
-
-        data.sort(
-          (a, b) =>
-            parseFloat(b.views) -
-            parseFloat(a.views)
-        );
+    this._isMounted = true;
+    this.client = algoliasearch(
+      process.env.REACT_APP_ALGOLIA_ID,
+      process.env.REACT_APP_ALGOLIA_KEY
+    );
+    this.index = this.client.initIndex("youtube");
+    this.index
+      .search({
+        query: this.state.data.tags[0]
+      })
+      .then(snapshot => {
+        this.props.onSetTwitters(snapshot.hits);
+        let data = snapshot.hits;
 
         // parsing to wordcloud
         let isTextFull = [];
@@ -108,33 +105,61 @@ class YoutubePage extends Component {
         let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
-        const isKeyFilter = item => moment(item.created_at).format("llll");
-        // const isKeyFilter = item => item.created_at;
-        const isGroupData = _.groupBy(data, isKeyFilter);
-        var isGroup = Object.keys(isGroupData).map(key => {
-          return { x: moment(key).unix(), y1: isGroupData[key].length };
+        let isBasicDataGrup = [];
+        data.forEach(item => {
+          let hourly = moment(item.created_at).format("HH:mm");
+          const keyhour = hourly.slice(0, 2);
+          isBasicDataGrup.push({ id: item.id, hour: keyhour });
+        });
+        //function grouping
+        function groupBy(list, keyGetter) {
+          const map = new Map();
+          list.forEach(item => {
+            const key = keyGetter(item);
+            const collection = map.get(key);
+            if (!collection) {
+              map.set(key, [item]);
+            } else {
+              collection.push(item);
+            }
+          });
+          return map;
+        }
+        // execution grouping
+        const grouped = groupBy(isBasicDataGrup, item => item.hour);
+        const isGroup = [];
+        let today = new Date();
+        let oldToday = moment(today).format("L");
+        grouped.forEach(element => {
+          let tominute = element[0].hour * 60;
+          var newDateObj = moment(oldToday)
+            .add(tominute, "m")
+            .toDate();
+          let convertDate = newDateObj.getTime() + 1000 * 59;
+          isGroup.push({
+            x: convertDate,
+            y1: element.length
+          });
         });
 
         this.setState({
-          chartTabel: data,
-          tableUser: isUserData,
+          loading: false,
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
           totalImpression: isTotalImpression,
+          chartTabel: data,
+          tableUser: isUserData,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
-          // chartSource: source,
           chartWordcloud: kata,
-          impression: impression,
-          loading: false
+          impression: impression
         });
-      }
-    });
+      });
   }
 
   componentWillUnmount() {
-    this.unsubscribe();
+    this._isMounted = false;
   }
   render() {
     return (
@@ -165,14 +190,6 @@ class YoutubePage extends Component {
             />
           </Col>
         </Row>
-        {/* <Row>
-          <Col span={24} style={{ marginBottom: 24 }}>
-            <Timelinechart
-              chartTimeline={this.state.chartTimeline}
-              loading={this.state.loading}
-            />
-          </Col>
-        </Row> */}
         <Row gutter={24}>
           <Col xs={24} md={12} style={{ marginBottom: 24 }}>
             <Piechart
@@ -199,14 +216,6 @@ class YoutubePage extends Component {
               impression={this.state.impression}
               loading={this.state.loading}
             />
-            {/* <Barchart
-              impression={this.state.impression}
-              loading={this.state.loading}
-            /> */}
-            {/* <Piechart
-              chartSentiment={this.state.chartSource}
-              loading={this.state.loading}
-            /> */}
           </Col>
         </Row>
         <Tablechart

@@ -105,7 +105,7 @@ class ListView extends Component {
                     title={data.title}
                     description={data.description}
                   />
-                  <p>{moment(data.createdAt).format("ll")}</p>
+                  <p>{moment(data.createdAt).format("LLLL")}</p>
                 </Skeleton>
               </List.Item>
             )}

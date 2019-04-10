@@ -6,7 +6,7 @@ import { compose } from "recompose";
 import { withAuthorization } from "../Session";
 import * as ROUTES from "../../constants/routes";
 
-import { Card, Icon, Avatar, List } from "antd";
+import { Card, Icon, Avatar, List, notification } from "antd";
 
 const { Meta } = Card;
 
@@ -113,13 +113,20 @@ class CardDisplay extends Component {
     this.unsubscribe();
   }
 
-  onRemoveProject = id => {
-    let authUser = JSON.parse(localStorage.getItem("authUser"));
-    // console.log('ini'+id);
-    this.props.firebase
-      .project(authUser.uid)
-      .child(id)
-      .remove();
+  onRemoveProject = event => {
+    let id = event.currentTarget.id;
+    this.deleteData = this.props.firebase
+      .projects()
+      .doc(id)
+      .delete()
+      .then(() => {
+        notification["success"]({
+          message: "Project successfully deleted!"
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
 
   render() {
@@ -141,7 +148,8 @@ class CardDisplay extends Component {
               actions={[
                 <Icon
                   type="delete"
-                  onClick={() => this.onRemoveProject(data.uid)}
+                  id={data.uid}
+                  onClick={this.onRemoveProject}
                 />,
                 <Link
                   to={{

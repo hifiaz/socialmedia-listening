@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 import { Row, Col } from "antd";
 import moment from "moment";
-import _ from "lodash";
 
 import { withAuthorization } from "../../Session";
 
 import { connect } from "react-redux";
 import { compose } from "recompose";
+import algoliasearch from "algoliasearch";
 
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
@@ -26,34 +26,42 @@ class News extends Component {
     super(props);
     this.state = {
       loading: true,
-      chartTabel: [],
       totalData: "",
       totalUser: "",
       totalWord: "",
       totalMedia: "",
-      chartSentiment: [],
       chartTimeline: [],
+      chartSentiment: [],
       chartWordcloud: [],
       tableMedia: [],
       TableUser: [],
-      impression: [],
+      chartTabel: [],
       ...props.location.state
     };
   }
 
   componentDidMount() {
+    this._isMounted = true;
     this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.news().onSnapshot(snapshot => {
-      if (snapshot.size) {
-        let data = [];
-        snapshot.forEach(doc => {
-          data.push({ ...doc.data(), uid: doc.id });
-        });
-        this.props.onSetNews(data);
 
-        data.sort(
-          (a, b) => parseFloat(b.created_at) - parseFloat(a.created_at)
-        );
+    this.client = algoliasearch(
+      process.env.REACT_APP_ALGOLIA_ID,
+      process.env.REACT_APP_ALGOLIA_KEY
+    );
+    this.index = this.client.initIndex("news");
+    this.index
+      .search({
+        query: this.state.data.tags[0]
+      })
+      .then(snapshot => {
+        this.props.onSetNews(snapshot.hits);
+        let data = snapshot.hits;
+        let totalData = data.length;
+
+        // define lenght user
+        let isUserData = data.filter(value => {
+          return !this[value.author] && (this[value.author] = true);
+        }, Object.create(null));
 
         // parsing to wordcloud
         let isTextFull = [];
@@ -79,6 +87,49 @@ class News extends Component {
           value: isSumOfWord[key]
         }));
 
+        // Lenght of Media
+        let isMediaData = data.filter(value => {
+          return !this[value.source.name] && (this[value.source.name] = true);
+        }, Object.create(null));
+
+        // Group data
+        let isBasicDataGrup = [];
+        data.forEach(item => {
+          let hourly = moment(item.created_at).format("HH:mm");
+          const keyhour = hourly.slice(0, 2);
+          isBasicDataGrup.push({ id: item.id, hour: keyhour });
+        });
+        //function grouping
+        function groupBy(list, keyGetter) {
+          const map = new Map();
+          list.forEach(item => {
+            const key = keyGetter(item);
+            const collection = map.get(key);
+            if (!collection) {
+              map.set(key, [item]);
+            } else {
+              collection.push(item);
+            }
+          });
+          return map;
+        }
+        // execution grouping
+        const grouped = groupBy(isBasicDataGrup, item => item.hour);
+        const isGroup = [];
+        let today = new Date();
+        let oldToday = moment(today).format("L");
+        grouped.forEach(element => {
+          let tominute = element[0].hour * 60;
+          var newDateObj = moment(oldToday)
+            .add(tominute, "m")
+            .toDate();
+          let convertDate = newDateObj.getTime() + 1000 * 59;
+          isGroup.push({
+            x: convertDate,
+            y1: element.length
+          });
+        });
+
         // Parsing to sentiment
         let negative = data.filter(value => value.sentiment === "negative");
         let neutral = data.filter(value => value.sentiment === "neutral");
@@ -89,88 +140,54 @@ class News extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        // Uniq User / Author
-        let isUserData = data.filter(value => {
-          return !this[value.author] && (this[value.author] = true);
-        }, Object.create(null));
-
-        // Unique Media
-        let isMediaData = data.filter(value => {
-          return !this[value.source.name] && (this[value.source.name] = true);
-        }, Object.create(null));
-
-        console.log(isMediaData);
-
-        // impression
-        // let impression = data.map(item => ({
-        //   x: item.owner,
-        //   y: item.preview
-        // }));
-
-        // Total impression
-        // let totalImpression = data.map(item => item.preview);
-        // let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
-
-        // Group data
-        const isKeyFilter = item => moment(item.publishedAt).format("llll");
-        // const isKeyFilter = item => item.created_at;
-        const isGroupData = _.groupBy(data, isKeyFilter);
-        var isGroup = Object.keys(isGroupData).map(key => {
-          return { x: moment(key).unix(), y1: isGroupData[key].length };
-        });
-
         this.setState({
-          chartTabel: data,
-          // tableUser: isUserData,
-          totalData: data.length,
+          totalData,
           totalUser: isUserData.length,
           totalWord: kata.length,
           totalMedia: isMediaData.length,
-          tableMedia: isMediaData,
-          tableUser: isUserData,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
           chartWordcloud: kata,
-          // impression: impression,
-          loading: false
+          tableMedia: isMediaData,
+          tableUser: isUserData,
+          chartTabel: data
         });
-      }
-    });
+      });
   }
 
   componentWillUnmount() {
-    this.unsubscribe();
+    this._isMounted = false;
   }
   render() {
     return (
       <div>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={6}>
+        <Row gutter={24}>
+          <Col span={6} style={{ marginBottom: 24 }}>
             <Cardtext
               totalData={this.state.totalData}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
+          <Col span={6} style={{ marginBottom: 24 }}>
             <Cardtrend
               totalUser={this.state.totalUser}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
+          <Col span={6} style={{ marginBottom: 24 }}>
             <Cardbar
               totalWord={this.state.totalWord}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
-          <Col span={6}>
+          <Col span={6} style={{ marginBottom: 24 }}>
             <CardMedia
               totalMedia={this.state.totalMedia}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
         </Row>
-        <Row style={{ marginBottom: 12 }}>
+        <Row>
           <Col span={24} style={{ marginBottom: 24 }}>
             <Timelinechart
               chartTimeline={this.state.chartTimeline}
@@ -178,38 +195,37 @@ class News extends Component {
             />
           </Col>
         </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        <Row gutter={24}>
+          <Col span={12} style={{ marginBottom: 24 }}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
-          <Col span={12}>
+          <Col span={12} style={{ marginBottom: 24 }}>
             <Wordcloud
               chartWordcloud={this.state.chartWordcloud}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
         </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col md={12}>
+        <Row gutter={24}>
+          <Col md={12} style={{ marginBottom: 24 }}>
             <TableMedia
               tableMedia={this.state.tableMedia}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
-          <Col md={12}>
+          <Col md={12} style={{ marginBottom: 24 }}>
             <TableUser
               tableUser={this.state.tableUser}
-              loading={this.state.loading}
+              // loading={this.state.loading}
             />
           </Col>
         </Row>
-        >
         <TableNews
           chartTabel={this.state.chartTabel}
-          loading={this.state.loading}
+          // loading={this.state.loading}
         />
       </div>
     );

@@ -1,12 +1,12 @@
 import React, { Component } from "react";
 import { Row, Col } from "antd";
 import moment from "moment";
-import _ from "lodash";
 
 import { withAuthorization } from "../../Session";
 
 import { connect } from "react-redux";
 import { compose } from "recompose";
+import algoliasearch from "algoliasearch";
 
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
@@ -16,11 +16,13 @@ import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
 import Tablechart from "../Charts/Twitter/Table";
 import TableUser from "../Charts/Twitter/TableUser";
-// import Barchart from "../Charts/Bar";
 import Timelinechart from "../Charts/Timeline";
 import LineChart from "../Charts/LineChart";
 
 require("../lib/StopWords");
+
+let applicationID = process.env.REACT_APP_ALGOLIA_ID;
+let apiKey = process.env.REACT_APP_ALGOLIA_KEY;
 
 class ProjectDetails extends Component {
   constructor(props) {
@@ -43,24 +45,16 @@ class ProjectDetails extends Component {
   }
 
   componentDidMount() {
-    this.setState({ loading: true });
-    this.unsubscribe = this.props.firebase.twitters().onSnapshot(snapshot => {
-      if (snapshot.size) {
-        // data = Object.keys(snapshot).map(key => ({
-        //   ...snapshot[key],
-        //   key: key
-        // }));
-        let data = [];
-        snapshot.forEach(doc => {
-          data.push({ ...doc.data(), uid: doc.id });
-        });
-        this.props.onSetTwitters(data);
-
-        data.sort(
-          (a, b) =>
-            parseFloat(b.user.followers_count) -
-            parseFloat(a.user.followers_count)
-        );
+    this._isMounted = true;
+    this.client = algoliasearch(applicationID, apiKey);
+    this.index = this.client.initIndex("twitter");
+    this.index
+      .search({
+        query: this.state.data.tags[0]
+      })
+      .then(snapshot => {
+        this.props.onSetTwitters(snapshot.hits);
+        let data = snapshot.hits;
 
         // parsing to wordcloud
         let isTextFull = [];
@@ -145,57 +139,86 @@ class ProjectDetails extends Component {
         let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
-        const isKeyFilter = item => moment(item.created_at).format("llll");
-        // const isKeyFilter = item => item.created_at;
-        const isGroupData = _.groupBy(data, isKeyFilter);
-        var isGroup = Object.keys(isGroupData).map(key => {
-          return { x: moment(key).unix(), y1: isGroupData[key].length };
+        let isBasicDataGrup = [];
+        data.forEach(item => {
+          let hourly = moment(item.created_at).format("HH:mm");
+          const keyhour = hourly.slice(0, 2);
+          isBasicDataGrup.push({ id: item.id, hour: keyhour });
+        });
+        //function grouping
+        function groupBy(list, keyGetter) {
+          const map = new Map();
+          list.forEach(item => {
+            const key = keyGetter(item);
+            const collection = map.get(key);
+            if (!collection) {
+              map.set(key, [item]);
+            } else {
+              collection.push(item);
+            }
+          });
+          return map;
+        }
+        // execution grouping
+        const grouped = groupBy(isBasicDataGrup, item => item.hour);
+        const isGroup = [];
+        let today = new Date();
+        let oldToday = moment(today).format("L");
+        grouped.forEach(element => {
+          let tominute = element[0].hour * 60;
+          var newDateObj = moment(oldToday)
+            .add(tominute, "m")
+            .toDate();
+          let convertDate = newDateObj.getTime() + 1000 * 59;
+          isGroup.push({
+            x: convertDate,
+            y1: element.length
+          });
         });
 
         this.setState({
-          chartTabel: data,
-          tableUser: isUserData,
+          loading: false,
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
           totalImpression: isTotalImpression,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
-          chartSource: source,
           chartWordcloud: kata,
+          tableUser: isUserData,
+          chartTabel: data,
           impression: impression,
-          loading: false
+          chartSource: source
         });
-      }
-    });
+      });
   }
 
   componentWillUnmount() {
-    this.unsubscribe();
+    this._isMounted = false;
   }
   render() {
     return (
       <div>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={6}>
+        <Row gutter={24}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardtext
               totalData={this.state.totalData}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardtrend
               totalUser={this.state.totalUser}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardbar
               totalWord={this.state.totalWord}
               loading={this.state.loading}
             />
           </Col>
-          <Col xs={24} md={6}>
+          <Col xs={24} md={6} style={{ marginBottom: 24 }}>
             <Cardprogress
               totalImpression={this.state.totalImpression}
               loading={this.state.loading}
@@ -210,8 +233,8 @@ class ProjectDetails extends Component {
             />
           </Col>
         </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={12}>
+        <Row gutter={24}>
+          <Col xs={24} md={12} style={{ marginBottom: 24 }}>
             <Piechart
               chartSentiment={this.state.chartSentiment}
               loading={this.state.loading}
@@ -224,8 +247,8 @@ class ProjectDetails extends Component {
             />
           </Col>
         </Row>
-        <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Col xs={24} md={24} lg={12}>
+        <Row gutter={24}>
+          <Col xs={24} md={24} lg={12} style={{ marginBottom: 24 }}>
             <TableUser
               tableUser={this.state.tableUser}
               loading={this.state.loading}
@@ -236,10 +259,6 @@ class ProjectDetails extends Component {
               impression={this.state.impression}
               loading={this.state.loading}
             />
-            {/* <Barchart
-              impression={this.state.impression}
-              loading={this.state.loading}
-            /> */}
             <Piechart
               chartSentiment={this.state.chartSource}
               loading={this.state.loading}

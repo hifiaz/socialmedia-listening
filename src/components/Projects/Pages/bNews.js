@@ -1,26 +1,27 @@
 import React, { Component } from "react";
 import { Row, Col } from "antd";
 import moment from "moment";
+import _ from "lodash";
 
 import { withAuthorization } from "../../Session";
 
 import { connect } from "react-redux";
 import { compose } from "recompose";
-import algoliasearch from "algoliasearch";
 
 import Cardtext from "../Charts/CardText";
 import Cardtrend from "../Charts/CardTrend";
 import Cardbar from "../Charts/CardBar";
-import Cardprogress from "../Charts/CardProgress";
+import CardMedia from "../Charts/News/UniqueMedia";
 import Piechart from "../Charts/Pie";
 import Wordcloud from "../Charts/Wordcloud";
-import TableIg from "../Charts/Instagram/TableIg";
+import TableNews from "../Charts/News/TableNews";
+import TableMedia from "../Charts/News/TableNMedia";
+import TableUser from "../Charts/News/TableNUser";
 import Timelinechart from "../Charts/Timeline";
-import LineChart from "../Charts/LineChart";
 
 require("../lib/StopWords");
 
-class Instagram extends Component {
+class News extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -29,36 +30,37 @@ class Instagram extends Component {
       totalData: "",
       totalUser: "",
       totalWord: "",
-      totalImpression: "",
+      totalMedia: "",
       chartSentiment: [],
       chartTimeline: [],
       chartWordcloud: [],
+      tableMedia: [],
+      TableUser: [],
       impression: [],
       ...props.location.state
     };
   }
 
   componentDidMount() {
-    this._isMounted = true;
-    this.client = algoliasearch(
-      process.env.REACT_APP_ALGOLIA_ID,
-      process.env.REACT_APP_ALGOLIA_KEY
-    );
-    this.index = this.client.initIndex("instagram");
-    this.index
-      .search({
-        query: this.state.data.tags[0]
-      })
-      .then(snapshot => {
-        this.props.onSetInstagrams(snapshot.hits);
-        let data = snapshot.hits;
+    this.setState({ loading: true });
+    this.unsubscribe = this.props.firebase.news().onSnapshot(snapshot => {
+      if (snapshot.size) {
+        let data = [];
+        snapshot.forEach(doc => {
+          data.push({ ...doc.data(), uid: doc.id });
+        });
+        this.props.onSetNews(data);
+
+        data.sort(
+          (a, b) => parseFloat(b.created_at) - parseFloat(a.created_at)
+        );
 
         // parsing to wordcloud
         let isTextFull = [];
         let isSumOfWord = {};
         let kata = [];
         data.forEach(item => {
-          isTextFull.push(item.caption);
+          isTextFull.push(item.description);
         });
 
         let isAllWord = isTextFull.join("\n");
@@ -87,77 +89,57 @@ class Instagram extends Component {
           { x: "positive", y: positive.length }
         ];
 
-        // partsing to table user
+        // Uniq User / Author
         let isUserData = data.filter(value => {
-          return !this[value.owner] && (this[value.owner] = true);
+          return !this[value.author] && (this[value.author] = true);
         }, Object.create(null));
 
+        // Unique Media
+        let isMediaData = data.filter(value => {
+          return !this[value.source.name] && (this[value.source.name] = true);
+        }, Object.create(null));
+
+        console.log(isMediaData);
+
         // impression
-        let impression = data.map(item => ({
-          x: item.owner,
-          y: item.preview
-        }));
+        // let impression = data.map(item => ({
+        //   x: item.owner,
+        //   y: item.preview
+        // }));
 
         // Total impression
-        let totalImpression = data.map(item => item.preview);
-        let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
+        // let totalImpression = data.map(item => item.preview);
+        // let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
 
         // Group data
-        let isBasicDataGrup = [];
-        data.forEach(item => {
-          let hourly = moment(item.created_at).format("HH:mm");
-          const keyhour = hourly.slice(0, 2);
-          isBasicDataGrup.push({ id: item.id, hour: keyhour });
-        });
-        //function grouping
-        function groupBy(list, keyGetter) {
-          const map = new Map();
-          list.forEach(item => {
-            const key = keyGetter(item);
-            const collection = map.get(key);
-            if (!collection) {
-              map.set(key, [item]);
-            } else {
-              collection.push(item);
-            }
-          });
-          return map;
-        }
-        // execution grouping
-        const grouped = groupBy(isBasicDataGrup, item => item.hour);
-        const isGroup = [];
-        let today = new Date();
-        let oldToday = moment(today).format("L");
-        grouped.forEach(element => {
-          let tominute = element[0].hour * 60;
-          var newDateObj = moment(oldToday)
-            .add(tominute, "m")
-            .toDate();
-          let convertDate = newDateObj.getTime() + 1000 * 59;
-          isGroup.push({
-            x: convertDate,
-            y1: element.length
-          });
+        const isKeyFilter = item => moment(item.publishedAt).format("llll");
+        // const isKeyFilter = item => item.created_at;
+        const isGroupData = _.groupBy(data, isKeyFilter);
+        var isGroup = Object.keys(isGroupData).map(key => {
+          return { x: moment(key).unix(), y1: isGroupData[key].length };
         });
 
         this.setState({
-          loading: false,
+          chartTabel: data,
+          // tableUser: isUserData,
           totalData: data.length,
           totalUser: isUserData.length,
           totalWord: kata.length,
-          totalImpression: isTotalImpression,
-          chartTabel: data,
+          totalMedia: isMediaData.length,
+          tableMedia: isMediaData,
           tableUser: isUserData,
           chartTimeline: isGroup,
           chartSentiment: sentiment,
           chartWordcloud: kata,
-          impression: impression
+          // impression: impression,
+          loading: false
         });
-      });
+      }
+    });
   }
 
   componentWillUnmount() {
-    this._isMounted = false;
+    this.unsubscribe();
   }
   render() {
     return (
@@ -182,8 +164,8 @@ class Instagram extends Component {
             />
           </Col>
           <Col span={6}>
-            <Cardprogress
-              totalImpression={this.state.totalImpression}
+            <CardMedia
+              totalMedia={this.state.totalMedia}
               loading={this.state.loading}
             />
           </Col>
@@ -204,23 +186,28 @@ class Instagram extends Component {
             />
           </Col>
           <Col span={12}>
-            <LineChart
-              impression={this.state.impression}
+            <Wordcloud
+              chartWordcloud={this.state.chartWordcloud}
               loading={this.state.loading}
             />
-            {/* <Barchart
-              impression={this.state.impression}
-              loading={this.state.loading}
-            /> */}
           </Col>
         </Row>
         <Row gutter={24} style={{ marginBottom: 24 }}>
-          <Wordcloud
-            chartWordcloud={this.state.chartWordcloud}
-            loading={this.state.loading}
-          />
+          <Col md={12}>
+            <TableMedia
+              tableMedia={this.state.tableMedia}
+              loading={this.state.loading}
+            />
+          </Col>
+          <Col md={12}>
+            <TableUser
+              tableUser={this.state.tableUser}
+              loading={this.state.loading}
+            />
+          </Col>
         </Row>
-        <TableIg
+        >
+        <TableNews
           chartTabel={this.state.chartTabel}
           loading={this.state.loading}
         />
@@ -230,13 +217,13 @@ class Instagram extends Component {
 }
 
 const mapStateToProps = state => ({
-  instagrams: Object.keys(state.instagramState.projects || {}).map(key => ({
-    ...state.instagramState.instagrams[key]
+  news: Object.keys(state.newsState.news || {}).map(key => ({
+    ...state.newsState.news[key]
   }))
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSetInstagrams: instagrams => dispatch({ type: "INSTAGRAM_SET", instagrams })
+  onSetNews: news => dispatch({ type: "NEWS_SET", news })
 });
 
 const condition = authUser => !!authUser;
@@ -247,4 +234,4 @@ export default compose(
     mapStateToProps,
     mapDispatchToProps
   )
-)(Instagram);
+)(News);

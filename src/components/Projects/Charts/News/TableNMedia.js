@@ -19,7 +19,7 @@ const TableNMedia = props => (
   <Card>
     <Skeleton loading={props.loading} avatar active>
       <Table
-        rowKey={record => record.id}
+        rowKey={record => record.objectID}
         columns={columns}
         dataSource={props.tableMedia}
         onChange={onChange}
