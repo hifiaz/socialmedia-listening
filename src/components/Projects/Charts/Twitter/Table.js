@@ -1,7 +1,8 @@
 import React from "react";
 
 import { withAuthorization } from "../../../Session";
-import { Table, Card, Avatar, Skeleton, Tag } from "antd";
+import { Table, Avatar, Skeleton, Tag } from "antd";
+import { ChartCard } from "ant-design-pro/lib/Charts";
 import moment from "moment";
 
 const columns = [
@@ -71,21 +72,16 @@ const columns = [
   }
 ];
 
-function onChange(pagination, filters, sorter) {
-  console.log("params", pagination, filters, sorter);
-}
-
 const TableView = props => (
-  <Card>
+  <ChartCard>
     <Skeleton loading={props.loading} avatar active>
       <Table
         rowKey={record => record.id}
         columns={columns}
         dataSource={props.chartTabel}
-        onChange={onChange}
       />
     </Skeleton>
-  </Card>
+  </ChartCard>
 );
 
 // class TableView extends Component {

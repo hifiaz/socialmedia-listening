@@ -52,109 +52,111 @@ class YoutubePage extends Component {
         query: this.state.data.tags[0]
       })
       .then(snapshot => {
-        this.props.onSetTwitters(snapshot.hits);
-        let data = snapshot.hits;
+        if (!snapshot) {
+          this.props.onSetTwitters(snapshot.hits);
+          let data = snapshot.hits;
 
-        // parsing to wordcloud
-        let isTextFull = [];
-        let isSumOfWord = {};
-        let kata = [];
-        data.forEach(item => {
-          isTextFull.push(item.description);
-        });
+          // parsing to wordcloud
+          let isTextFull = [];
+          let isSumOfWord = {};
+          let kata = [];
+          data.forEach(item => {
+            isTextFull.push(item.description);
+          });
 
-        let isAllWord = isTextFull.join("\n");
-        let removeWord = isAllWord.removeStopWords();
-        let token = removeWord.split(/\W+/);
-        token.forEach(word => {
-          if (isSumOfWord[word] === undefined) {
-            isSumOfWord[word] = 1;
-          } else {
-            isSumOfWord[word] = isSumOfWord[word] + 1;
-          }
-        });
-        kata = Object.keys(isSumOfWord).map(key => ({
-          ...isSumOfWord[key],
-          name: key,
-          value: isSumOfWord[key]
-        }));
-
-        // Parsing to sentiment
-        let negative = data.filter(value => value.sentiment === "negative");
-        let neutral = data.filter(value => value.sentiment === "neutral");
-        let positive = data.filter(value => value.sentiment === "positive");
-        const sentiment = [
-          { x: "negative", y: negative.length },
-          { x: "neutral", y: neutral.length },
-          { x: "positive", y: positive.length }
-        ];
-
-        // // partsing to table user
-        let isUserData = data.filter(value => {
-          return !this[value.channel] && (this[value.channel] = true);
-        }, Object.create(null));
-
-        // impression
-        let impression = data.map(item => ({
-          x: item.channel,
-          y: item.views
-        }));
-
-        // Total impression
-        let totalImpression = data.map(item => item.views);
-        let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
-
-        // Group data
-        let isBasicDataGrup = [];
-        data.forEach(item => {
-          let hourly = moment(item.created_at).format("HH:mm");
-          const keyhour = hourly.slice(0, 2);
-          isBasicDataGrup.push({ id: item.id, hour: keyhour });
-        });
-        //function grouping
-        function groupBy(list, keyGetter) {
-          const map = new Map();
-          list.forEach(item => {
-            const key = keyGetter(item);
-            const collection = map.get(key);
-            if (!collection) {
-              map.set(key, [item]);
+          let isAllWord = isTextFull.join("\n");
+          let removeWord = isAllWord.removeStopWords();
+          let token = removeWord.split(/\W+/);
+          token.forEach(word => {
+            if (isSumOfWord[word] === undefined) {
+              isSumOfWord[word] = 1;
             } else {
-              collection.push(item);
+              isSumOfWord[word] = isSumOfWord[word] + 1;
             }
           });
-          return map;
-        }
-        // execution grouping
-        const grouped = groupBy(isBasicDataGrup, item => item.hour);
-        const isGroup = [];
-        let today = new Date();
-        let oldToday = moment(today).format("L");
-        grouped.forEach(element => {
-          let tominute = element[0].hour * 60;
-          var newDateObj = moment(oldToday)
-            .add(tominute, "m")
-            .toDate();
-          let convertDate = newDateObj.getTime() + 1000 * 59;
-          isGroup.push({
-            x: convertDate,
-            y1: element.length
-          });
-        });
+          kata = Object.keys(isSumOfWord).map(key => ({
+            ...isSumOfWord[key],
+            name: key,
+            value: isSumOfWord[key]
+          }));
 
-        this.setState({
-          loading: false,
-          totalData: data.length,
-          totalUser: isUserData.length,
-          totalWord: kata.length,
-          totalImpression: isTotalImpression,
-          chartTabel: data,
-          tableUser: isUserData,
-          chartTimeline: isGroup,
-          chartSentiment: sentiment,
-          chartWordcloud: kata,
-          impression: impression
-        });
+          // Parsing to sentiment
+          let negative = data.filter(value => value.sentiment === "negative");
+          let neutral = data.filter(value => value.sentiment === "neutral");
+          let positive = data.filter(value => value.sentiment === "positive");
+          const sentiment = [
+            { x: "negative", y: negative.length },
+            { x: "neutral", y: neutral.length },
+            { x: "positive", y: positive.length }
+          ];
+
+          // // partsing to table user
+          let isUserData = data.filter(value => {
+            return !this[value.channel] && (this[value.channel] = true);
+          }, Object.create(null));
+
+          // impression
+          let impression = data.map(item => ({
+            x: item.channel,
+            y: item.views
+          }));
+
+          // Total impression
+          let totalImpression = data.map(item => item.views);
+          let isTotalImpression = totalImpression.reduce((a, b) => a + b, 0);
+
+          // Group data
+          let isBasicDataGrup = [];
+          data.forEach(item => {
+            let hourly = moment(item.created_at).format("HH:mm");
+            const keyhour = hourly.slice(0, 2);
+            isBasicDataGrup.push({ id: item.id, hour: keyhour });
+          });
+          //function grouping
+          function groupBy(list, keyGetter) {
+            const map = new Map();
+            list.forEach(item => {
+              const key = keyGetter(item);
+              const collection = map.get(key);
+              if (!collection) {
+                map.set(key, [item]);
+              } else {
+                collection.push(item);
+              }
+            });
+            return map;
+          }
+          // execution grouping
+          const grouped = groupBy(isBasicDataGrup, item => item.hour);
+          const isGroup = [];
+          let today = new Date();
+          let oldToday = moment(today).format("L");
+          grouped.forEach(element => {
+            let tominute = element[0].hour * 60;
+            var newDateObj = moment(oldToday)
+              .add(tominute, "m")
+              .toDate();
+            let convertDate = newDateObj.getTime() + 1000 * 59;
+            isGroup.push({
+              x: convertDate,
+              y1: element.length
+            });
+          });
+
+          this.setState({
+            loading: false,
+            totalData: data.length,
+            totalUser: isUserData.length,
+            totalWord: kata.length,
+            totalImpression: isTotalImpression,
+            chartTabel: data,
+            tableUser: isUserData,
+            chartTimeline: isGroup,
+            chartSentiment: sentiment,
+            chartWordcloud: kata,
+            impression: impression
+          });
+        }
       });
   }
 

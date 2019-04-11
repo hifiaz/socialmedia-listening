@@ -52,105 +52,107 @@ class News extends Component {
         query: this.state.data.tags[0]
       })
       .then(snapshot => {
-        this.props.onSetNews(snapshot.hits);
-        let data = snapshot.hits;
-        let totalData = data.length;
+        if (!snapshot) {
+          this.props.onSetNews(snapshot.hits);
+          let data = snapshot.hits;
+          let totalData = data.length;
 
-        // define lenght user
-        let isUserData = data.filter(value => {
-          return !this[value.author] && (this[value.author] = true);
-        }, Object.create(null));
+          // define lenght user
+          let isUserData = data.filter(value => {
+            return !this[value.author] && (this[value.author] = true);
+          }, Object.create(null));
 
-        // parsing to wordcloud
-        let isTextFull = [];
-        let isSumOfWord = {};
-        let kata = [];
-        data.forEach(item => {
-          isTextFull.push(item.description);
-        });
+          // parsing to wordcloud
+          let isTextFull = [];
+          let isSumOfWord = {};
+          let kata = [];
+          data.forEach(item => {
+            isTextFull.push(item.description);
+          });
 
-        let isAllWord = isTextFull.join("\n");
-        let removeWord = isAllWord.removeStopWords();
-        let token = removeWord.split(/\W+/);
-        token.forEach(word => {
-          if (isSumOfWord[word] === undefined) {
-            isSumOfWord[word] = 1;
-          } else {
-            isSumOfWord[word] = isSumOfWord[word] + 1;
-          }
-        });
-        kata = Object.keys(isSumOfWord).map(key => ({
-          ...isSumOfWord[key],
-          name: key,
-          value: isSumOfWord[key]
-        }));
-
-        // Lenght of Media
-        let isMediaData = data.filter(value => {
-          return !this[value.source.name] && (this[value.source.name] = true);
-        }, Object.create(null));
-
-        // Group data
-        let isBasicDataGrup = [];
-        data.forEach(item => {
-          let hourly = moment(item.created_at).format("HH:mm");
-          const keyhour = hourly.slice(0, 2);
-          isBasicDataGrup.push({ id: item.id, hour: keyhour });
-        });
-        //function grouping
-        function groupBy(list, keyGetter) {
-          const map = new Map();
-          list.forEach(item => {
-            const key = keyGetter(item);
-            const collection = map.get(key);
-            if (!collection) {
-              map.set(key, [item]);
+          let isAllWord = isTextFull.join("\n");
+          let removeWord = isAllWord.removeStopWords();
+          let token = removeWord.split(/\W+/);
+          token.forEach(word => {
+            if (isSumOfWord[word] === undefined) {
+              isSumOfWord[word] = 1;
             } else {
-              collection.push(item);
+              isSumOfWord[word] = isSumOfWord[word] + 1;
             }
           });
-          return map;
-        }
-        // execution grouping
-        const grouped = groupBy(isBasicDataGrup, item => item.hour);
-        const isGroup = [];
-        let today = new Date();
-        let oldToday = moment(today).format("L");
-        grouped.forEach(element => {
-          let tominute = element[0].hour * 60;
-          var newDateObj = moment(oldToday)
-            .add(tominute, "m")
-            .toDate();
-          let convertDate = newDateObj.getTime() + 1000 * 59;
-          isGroup.push({
-            x: convertDate,
-            y1: element.length
+          kata = Object.keys(isSumOfWord).map(key => ({
+            ...isSumOfWord[key],
+            name: key,
+            value: isSumOfWord[key]
+          }));
+
+          // Lenght of Media
+          let isMediaData = data.filter(value => {
+            return !this[value.source.name] && (this[value.source.name] = true);
+          }, Object.create(null));
+
+          // Group data
+          let isBasicDataGrup = [];
+          data.forEach(item => {
+            let hourly = moment(item.created_at).format("HH:mm");
+            const keyhour = hourly.slice(0, 2);
+            isBasicDataGrup.push({ id: item.id, hour: keyhour });
           });
-        });
+          //function grouping
+          function groupBy(list, keyGetter) {
+            const map = new Map();
+            list.forEach(item => {
+              const key = keyGetter(item);
+              const collection = map.get(key);
+              if (!collection) {
+                map.set(key, [item]);
+              } else {
+                collection.push(item);
+              }
+            });
+            return map;
+          }
+          // execution grouping
+          const grouped = groupBy(isBasicDataGrup, item => item.hour);
+          const isGroup = [];
+          let today = new Date();
+          let oldToday = moment(today).format("L");
+          grouped.forEach(element => {
+            let tominute = element[0].hour * 60;
+            var newDateObj = moment(oldToday)
+              .add(tominute, "m")
+              .toDate();
+            let convertDate = newDateObj.getTime() + 1000 * 59;
+            isGroup.push({
+              x: convertDate,
+              y1: element.length
+            });
+          });
 
-        // Parsing to sentiment
-        let negative = data.filter(value => value.sentiment === "negative");
-        let neutral = data.filter(value => value.sentiment === "neutral");
-        let positive = data.filter(value => value.sentiment === "positive");
-        const sentiment = [
-          { x: "negative", y: negative.length },
-          { x: "neutral", y: neutral.length },
-          { x: "positive", y: positive.length }
-        ];
+          // Parsing to sentiment
+          let negative = data.filter(value => value.sentiment === "negative");
+          let neutral = data.filter(value => value.sentiment === "neutral");
+          let positive = data.filter(value => value.sentiment === "positive");
+          const sentiment = [
+            { x: "negative", y: negative.length },
+            { x: "neutral", y: neutral.length },
+            { x: "positive", y: positive.length }
+          ];
 
-        this.setState({
-          loading: false,
-          totalData,
-          totalUser: isUserData.length,
-          totalWord: kata.length,
-          totalMedia: isMediaData.length,
-          chartTimeline: isGroup,
-          chartSentiment: sentiment,
-          chartWordcloud: kata,
-          tableMedia: isMediaData,
-          tableUser: isUserData,
-          chartTabel: data
-        });
+          this.setState({
+            loading: false,
+            totalData,
+            totalUser: isUserData.length,
+            totalWord: kata.length,
+            totalMedia: isMediaData.length,
+            chartTimeline: isGroup,
+            chartSentiment: sentiment,
+            chartWordcloud: kata,
+            tableMedia: isMediaData,
+            tableUser: isUserData,
+            chartTabel: data
+          });
+        }
       });
   }
 
