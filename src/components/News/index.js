@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import LayoutDefault from "../Layout/index";
 import { List, Card } from "antd";
 
-
 class News extends Component {
   constructor(props) {
     super(props);
@@ -11,8 +10,9 @@ class News extends Component {
     };
   }
   componentDidMount() {
+    const key = process.env.REACT_APP_NEWS_KEY;
     fetch(
-      "https://newsapi.org/v2/everything?q=prabowo&sortBy=publishedAt&apiKey=cb198335925d44229da8be0ee0211193"
+      `https://newsapi.org/v2/everything?q=prabowo&sortBy=publishedAt&apiKey=${key}`
     )
       .then(response => {
         return response.json();
@@ -49,19 +49,21 @@ class News extends Component {
             renderItem={item => (
               <List.Item
                 key={item.title}
-                actions={[
-                  <p>{item.source.name}</p>
-                ]}
+                actions={[<p>{item.source.name}</p>]}
                 extra={
-                  <img
-                    width={272}
-                    alt={item.title}
-                    src={item.urlToImage}
-                  />
+                  <img width={272} alt={item.title} src={item.urlToImage} />
                 }
               >
                 <List.Item.Meta
-                  title={<a href={item.url} target="_blank" rel="noopener noreferrer">{item.title}</a>}
+                  title={
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.title}
+                    </a>
+                  }
                   description={item.description}
                 />
                 {item.content}
