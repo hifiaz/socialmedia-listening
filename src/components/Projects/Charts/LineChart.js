@@ -14,8 +14,8 @@ import { MiniArea, ChartCard } from "ant-design-pro/lib/Charts";
 // }
 
 const LineChart = props => (
-  <ChartCard title="Potential Impression" style={{ marginBottom: 24 }}>
-    <MiniArea line color="#cceafe" height={300} data={props.impression} />
+  <ChartCard title="Potential Impression" style={{ marginBottom: 24 }} loading={props.loading}>
+    <MiniArea line color="#cceafe" height={200} data={props.impression} />
   </ChartCard>
 );
 export default LineChart;

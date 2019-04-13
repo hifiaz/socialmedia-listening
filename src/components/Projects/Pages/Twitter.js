@@ -18,6 +18,7 @@ import Tablechart from "../Charts/Twitter/Table";
 import TableUser from "../Charts/Twitter/TableUser";
 import Timelinechart from "../Charts/Timeline";
 import LineChart from "../Charts/LineChart";
+import PiePercent from "../Charts/PiePercent";
 
 require("../lib/StopWords");
 
@@ -35,6 +36,9 @@ class ProjectDetails extends Component {
       totalUser: "",
       totalWord: "",
       totalImpression: "",
+      totalID: "",
+      totalEN: "",
+      totalNA: "",
       chartSentiment: [],
       chartSource: [],
       chartTimeline: [],
@@ -53,7 +57,7 @@ class ProjectDetails extends Component {
         query: this.state.data.tags[0]
       })
       .then(snapshot => {
-        if (!snapshot) {
+        if (snapshot != null) {
           this.props.onSetTwitters(snapshot.hits);
           let data = snapshot.hits;
 
@@ -177,11 +181,28 @@ class ProjectDetails extends Component {
             });
           });
 
+          // language
+          let langID = data.filter(value => value.user.lang === "id");
+          let langEN = data.filter(value => value.user.lang === "en");
+          let percenID = ((langID.length / data.length) * 100) | 0;
+          let percenEN = ((langEN.length / data.length) * 100) | 0;
+          let percenNA =
+            (((data.length - (langID.length + langEN.length)) / data.length) *
+              100) |
+            0;
+          const totalID = { title: "ID", total: percenID };
+          const totalEN = { title: "EN", total: percenEN };
+          const totalNA = { title: "NA", total: percenNA };
+  
+
           this.setState({
             loading: false,
             totalData: data.length,
             totalUser: isUserData.length,
             totalWord: kata.length,
+            totalID,
+            totalEN,
+            totalNA,
             totalImpression: isTotalImpression,
             chartTimeline: isGroup,
             chartSentiment: sentiment,
@@ -265,6 +286,26 @@ class ProjectDetails extends Component {
               chartSentiment={this.state.chartSource}
               loading={this.state.loading}
             />
+            <Row>
+              <Col span="8">
+                <PiePercent
+                  totalID={this.state.totalID}
+                  loading={this.state.loading}
+                />
+              </Col>
+              <Col span="8">
+                <PiePercent
+                  totalID={this.state.totalEN}
+                  loading={this.state.loading}
+                />
+              </Col>
+              <Col span="8">
+                <PiePercent
+                  totalID={this.state.totalNA}
+                  loading={this.state.loading}
+                />
+              </Col>
+            </Row>
           </Col>
         </Row>
         <Tablechart

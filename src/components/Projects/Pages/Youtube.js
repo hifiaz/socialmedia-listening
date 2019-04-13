@@ -52,7 +52,7 @@ class YoutubePage extends Component {
         query: this.state.data.tags[0]
       })
       .then(snapshot => {
-        if (!snapshot) {
+        if (snapshot != null) {
           this.props.onSetTwitters(snapshot.hits);
           let data = snapshot.hits;
 

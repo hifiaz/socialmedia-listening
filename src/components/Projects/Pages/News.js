@@ -52,7 +52,7 @@ class News extends Component {
         query: this.state.data.tags[0]
       })
       .then(snapshot => {
-        if (!snapshot) {
+        if (snapshot != null) {
           this.props.onSetNews(snapshot.hits);
           let data = snapshot.hits;
           let totalData = data.length;
